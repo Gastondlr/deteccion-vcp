@@ -91,6 +91,11 @@ def compute_contractions(
         if high_sw.type != SwingType.HIGH or low_sw.type != SwingType.LOW:
             continue
 
+        if not high_sw.metadata.get("confirmed", True):
+            continue
+        if not low_sw.metadata.get("confirmed", True):
+            continue
+
         if low_sw.price >= high_sw.price:
             logger.warning(
                 "Swing LOW price (%.4f) >= HIGH price (%.4f) at %s -> %s, skipping",

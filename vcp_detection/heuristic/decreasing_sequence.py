@@ -83,6 +83,7 @@ def detect_decreasing_sequence(
     ohlc_index: pd.DatetimeIndex | None = None,
     max_depth_pct: float | None = None,
     min_total_reduction: float | None = None,
+    max_gap_between_contractions_days: int | None = None,
 ) -> DecreasingSequence | None:
     """Evalua si existe una secuencia decreciente de contracciones terminando
     en o antes de evaluation_date.
@@ -99,6 +100,10 @@ def detect_decreasing_sequence(
         ohlc_index: DatetimeIndex opcional para contar bars de trading.
         max_depth_pct: Profundidad maxima permitida por contraccion individual.
         min_total_reduction: Ratio maximo depths[-1]/depths[0].
+        max_gap_between_contractions_days: Maximo de dias calendario permitidos
+            entre el low de una contraccion y el high de la siguiente. Rechaza
+            secuencias donde alguna recuperacion entre contracciones sea demasiado
+            larga (patron demasiado estirado). None para desactivar.
 
     Returns:
         DecreasingSequence si encontro secuencia valida, None en caso contrario.
@@ -134,6 +139,9 @@ def detect_decreasing_sequence(
         if not _passes_quality_filters(depths, max_depth_pct, min_total_reduction, metrics):
             continue
 
+        if not _passes_gap_filter(tail, max_gap_between_contractions_days, metrics):
+            continue
+
         return DecreasingSequence(
             contractions=tail,
             evaluation_date=evaluation_date,
@@ -158,6 +166,7 @@ def scan_for_sequences(
     ohlc_index: pd.DatetimeIndex | None = None,
     max_depth_pct: float | None = None,
     min_total_reduction: float | None = None,
+    max_gap_between_contractions_days: int | None = None,
 ) -> dict[pd.Timestamp, DecreasingSequence | None]:
     """Aplica detect_decreasing_sequence sobre multiples fechas de evaluacion.
 
@@ -173,6 +182,7 @@ def scan_for_sequences(
         ohlc_index: DatetimeIndex opcional.
         max_depth_pct: Profundidad maxima permitida por contraccion individual.
         min_total_reduction: Ratio maximo depths[-1]/depths[0].
+        max_gap_between_contractions_days: Maximo de dias calendario entre contracciones.
 
     Returns:
         Dict ordenado {evaluation_date: DecreasingSequence | None}.
@@ -191,6 +201,7 @@ def scan_for_sequences(
             ohlc_index=ohlc_index,
             max_depth_pct=max_depth_pct,
             min_total_reduction=min_total_reduction,
+            max_gap_between_contractions_days=max_gap_between_contractions_days,
         )
     n_detected = sum(1 for v in results.values() if v is not None)
     logger.debug(
@@ -241,6 +252,41 @@ def _passes_quality_filters(
     return True
 
 
+def _passes_gap_filter(
+    tail: list[Contraction],
+    max_gap_days: int | None,
+    metrics: dict,
+) -> bool:
+    """Rechaza secuencias con gaps excesivos entre contracciones consecutivas.
+
+    El gap se mide desde el low_swing.date de la contraccion i hasta el
+    high_swing.date de la contraccion i+1 (tiempo de recuperacion).
+
+    Args:
+        tail: Lista de contracciones en orden cronologico.
+        max_gap_days: Maximo dias calendario permitidos. None desactiva.
+        metrics: Dict de metricas, se enriquece in-place.
+
+    Returns:
+        True si pasa el filtro.
+    """
+    if max_gap_days is None or len(tail) < 2:
+        return True
+
+    max_observed = 0
+    for i in range(len(tail) - 1):
+        gap = (tail[i + 1].high_swing.date - tail[i].low_swing.date).days
+        max_observed = max(max_observed, gap)
+        if gap > max_gap_days:
+            metrics["max_gap_observed_days"] = max_observed
+            metrics["max_gap_threshold_days"] = max_gap_days
+            return False
+
+    metrics["max_gap_observed_days"] = max_observed
+    metrics["max_gap_threshold_days"] = max_gap_days
+    return True
+
+
 # ---------------------------------------------------------------------------
 # Monotonicity checkers
 # ---------------------------------------------------------------------------
@@ -277,14 +323,20 @@ def _is_decreasing_with_tolerance(
     """
     max_ratio = 0.0
     for i in range(1, len(depths)):
-        if depths[i - 1] > 0:
-            ratio = depths[i] / depths[i - 1]
-            max_ratio = max(max_ratio, ratio)
-            if depths[i] > depths[i - 1] * (1 + tolerance):
+        if depths[i - 1] <= 0:
+            if depths[i] > 0:
                 return False, {
-                    "max_ratio_observed": max_ratio,
+                    "max_ratio_observed": float("inf"),
                     "tolerance_used": tolerance,
                 }
+            continue
+        ratio = depths[i] / depths[i - 1]
+        max_ratio = max(max_ratio, ratio)
+        if depths[i] > depths[i - 1] * (1 + tolerance):
+            return False, {
+                "max_ratio_observed": max_ratio,
+                "tolerance_used": tolerance,
+            }
     return True, {"max_ratio_observed": max_ratio, "tolerance_used": tolerance}
 
 
@@ -342,6 +394,12 @@ def _validate_params(method: str, min_contractions: int, max_contractions: int) 
         raise ValueError(
             f"max_contractions ({max_contractions}) must be >= "
             f"min_contractions ({min_contractions})"
+        )
+    if method == "robust_trend" and max_contractions < 3:
+        logger.warning(
+            "robust_trend requires >= 3 contractions but max_contractions=%d; "
+            "will always return None",
+            max_contractions,
         )
 
 
