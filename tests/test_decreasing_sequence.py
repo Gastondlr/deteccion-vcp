@@ -149,3 +149,86 @@ class TestDetectDecreasingSequence:
         )
         # Solo 1 contraccion reciente, necesita 2 → None
         assert result is None
+
+    def test_robust_trend_detects_linear_decrease(self) -> None:
+        """robust_trend debe detectar secuencia con pendiente negativa clara."""
+        contractions = [
+            _make_contraction("2023-01-10", "2023-01-20", 100, 80),   # 20%
+            _make_contraction("2023-02-10", "2023-02-20", 100, 88),   # 12%
+            _make_contraction("2023-03-10", "2023-03-20", 100, 95),   # 5%
+        ]
+        result = detect_decreasing_sequence(
+            contractions,
+            evaluation_date=pd.Timestamp("2023-04-01"),
+            method="robust_trend",
+            min_contractions=3,
+            lookback_bars=200,
+            min_r_squared=0.5,
+        )
+        assert result is not None
+        assert result.n_contractions == 3
+        assert result.method == "robust_trend"
+        assert result.method_metrics["slope"] < 0
+        assert result.method_metrics["r_squared"] >= 0.5
+
+    def test_robust_trend_rejects_flat_sequence(self) -> None:
+        """robust_trend debe rechazar secuencia sin tendencia clara."""
+        contractions = [
+            _make_contraction("2023-01-10", "2023-01-20", 100, 90),   # 10%
+            _make_contraction("2023-02-10", "2023-02-20", 100, 89),   # 11% — sube
+            _make_contraction("2023-03-10", "2023-03-20", 100, 90),   # 10% — vuelve
+        ]
+        result = detect_decreasing_sequence(
+            contractions,
+            evaluation_date=pd.Timestamp("2023-04-01"),
+            method="robust_trend",
+            min_contractions=3,
+            lookback_bars=200,
+            min_r_squared=0.9,
+        )
+        assert result is None
+
+    def test_robust_trend_needs_three_points(self) -> None:
+        """robust_trend con solo 2 contracciones debe retornar None."""
+        contractions = [
+            _make_contraction("2023-01-10", "2023-01-20", 100, 85),
+            _make_contraction("2023-02-10", "2023-02-20", 100, 95),
+        ]
+        result = detect_decreasing_sequence(
+            contractions,
+            evaluation_date=pd.Timestamp("2023-04-01"),
+            method="robust_trend",
+            min_contractions=2,
+            max_contractions=2,
+            lookback_bars=200,
+        )
+        assert result is None
+
+    def test_zero_depth_handled_in_tolerance(self) -> None:
+        """Profundidad cero no debe causar division por cero."""
+        contractions = [
+            Contraction(
+                high_swing=SwingPoint(
+                    date=pd.Timestamp("2023-01-10"), price=100, type=SwingType.HIGH,
+                    confirmed_at=pd.Timestamp("2023-01-20"),
+                ),
+                low_swing=SwingPoint(
+                    date=pd.Timestamp("2023-01-20"), price=100, type=SwingType.LOW,
+                    confirmed_at=pd.Timestamp("2023-01-20"),
+                ),
+                depth_pct=0.0,
+                depth_abs=0.0,
+                duration_bars=10,
+                confirmed_at=pd.Timestamp("2023-01-20"),
+            ),
+            _make_contraction("2023-02-10", "2023-02-20", 100, 95),
+        ]
+        result = detect_decreasing_sequence(
+            contractions,
+            evaluation_date=pd.Timestamp("2023-04-01"),
+            method="tolerance",
+            tolerance=0.10,
+            min_contractions=2,
+            lookback_bars=200,
+        )
+        assert result is None

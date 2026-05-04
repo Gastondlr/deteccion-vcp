@@ -174,3 +174,65 @@ class TestRunFullVCPPipeline:
         n_dedup = sum(1 for v in results_dedup.values() if v is not None)
 
         assert n_dedup <= n_no_dedup
+
+    def test_synthetic_vcp_produces_at_least_one_signal(
+        self, synthetic_vcp_ohlc: pd.DataFrame
+    ) -> None:
+        """Los datos sinteticos con VCP conocido deben producir al menos una senal."""
+        detector = ATRZigZagDetector(ATRZigZagConfig(atr_length=14, atr_mult=2.0))
+        results = run_full_vcp_pipeline(
+            ohlc=synthetic_vcp_ohlc,
+            swing_detector=detector,
+            sequence_params={
+                "method": "tolerance",
+                "min_contractions": 2,
+                "max_contractions": 6,
+                "lookback_bars": 200,
+                "tolerance": 0.10,
+            },
+            compression_params={
+                "method": "ratio",
+                "atr_period": 14,
+                "ratio_threshold": 0.99,
+            },
+            breakout_params={
+                "volume_method": "ratio",
+                "volume_ratio_threshold": 1.0,
+                "volume_lookback_days": 50,
+                "require_volume_confirmation": False,
+            },
+        )
+        n_signals = sum(1 for v in results.values() if v is not None)
+        assert n_signals >= 1, "Synthetic VCP data should produce at least 1 signal"
+
+    def test_downtrend_produces_no_signals(self, downtrend_ohlc: pd.DataFrame) -> None:
+        """Mercado en tendencia bajista no deberia producir senales VCP."""
+        detector = ATRZigZagDetector(ATRZigZagConfig(atr_length=14, atr_mult=2.0))
+        results = run_full_vcp_pipeline(
+            ohlc=downtrend_ohlc,
+            swing_detector=detector,
+            sequence_params={
+                "method": "tolerance",
+                "min_contractions": 2,
+                "max_contractions": 6,
+                "lookback_bars": 126,
+                "tolerance": 0.10,
+                "max_depth_pct": 0.25,
+                "min_total_reduction": 0.70,
+            },
+            compression_params={
+                "method": "ratio",
+                "atr_period": 14,
+                "ratio_threshold": 0.85,
+            },
+            breakout_params={
+                "volume_method": "ratio",
+                "volume_ratio_threshold": 1.5,
+                "volume_lookback_days": 50,
+                "require_volume_confirmation": True,
+            },
+        )
+        n_signals = sum(1 for v in results.values() if v is not None)
+        assert n_signals == 0, (
+            f"Downtrend should produce 0 signals but got {n_signals}"
+        )
