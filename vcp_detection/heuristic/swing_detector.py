@@ -9,35 +9,23 @@ definen la estructura del patron: cada par (HIGH, LOW) consecutivo forma una
 "contraccion" que se evalua en los pasos siguientes.
 
 ============================================================================
-METODOS IMPLEMENTADOS
+METODO IMPLEMENTADO: ATRZigZagDetector
 ============================================================================
-
-1. ATRZigZagDetector (recomendado)
-   - Algoritmo ZigZag adaptativo con threshold basado en ATR (Average True Range).
-   - Recorre la serie hacia adelante (causal) manteniendo un extremo candidato
-     y una direccion (UP buscando highs, DOWN buscando lows).
-   - Confirma un swing cuando el precio revierte al menos ``atr_mult * ATR``
-     desde el extremo actual.
-   - Cada swing tiene un ``confirmed_at`` explicito — la fecha del bar donde
-     se cruzo el threshold de confirmacion. Esto permite filtrar por fecha en
-     backtesting para evitar look-ahead bias.
-   - Ventaja: inherentemente causal (procesa barra a barra sin ver el futuro).
-
-2. ScipyPeaksDetector (alternativo)
-   - Basado en scipy.signal.find_peaks con filtrado por prominence.
-   - Suaviza la serie con SMA, detecta picos/valles, y filtra por prominence
-     (fija o autoescalada con ATR).
-   - Modo causal (config.causal=True): SMA no centrada + descarte de swings
-     inestables al final.
-   - Modo no-causal (default): SMA centrada, introduce look-ahead implicito.
+Algoritmo ZigZag adaptativo con threshold basado en ATR (Average True Range).
+- Recorre la serie hacia adelante (causal) manteniendo un extremo candidato
+  y una direccion (UP buscando highs, DOWN buscando lows).
+- Confirma un swing cuando el precio revierte al menos ``atr_mult * ATR``
+  desde el extremo actual.
+- Cada swing tiene un ``confirmed_at`` explicito — la fecha del bar donde
+  se cruzo el threshold de confirmacion. Esto permite filtrar por fecha en
+  backtesting para evitar look-ahead bias.
+- Ventaja: inherentemente causal (procesa barra a barra sin ver el futuro).
 
 ============================================================================
 LIBRERIAS UTILIZADAS
 ============================================================================
 - numpy: Operaciones vectorizadas sobre arrays de precios (True Range, argmax/argmin).
 - pandas: Series temporales con DatetimeIndex, rolling windows para ATR.
-- scipy.signal.find_peaks: Deteccion de picos (solo en ScipyPeaksDetector).
-- scipy.signal.peak_prominences: Calculo de prominence de picos (solo en ScipyPeaksDetector).
 - yaml: Carga de configuracion desde archivos YAML.
 
 ============================================================================
@@ -64,9 +52,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import yaml
-from scipy.signal import find_peaks, peak_prominences
 
-from models.configs import ATRZigZagConfig, ScipyPeaksConfig
+from models.configs import ATRZigZagConfig
 from models.enums import SwingType
 from models.types import SwingPoint
 
@@ -313,171 +300,3 @@ class ATRZigZagDetector(SwingDetector):
         return cls(config=ATRZigZagConfig(**params))
 
 
-class ScipyPeaksDetector(SwingDetector):
-    """Detector de swings basado en scipy.signal.find_peaks.
-
-    Suaviza la serie de close con SMA, detecta picos y valles via find_peaks,
-    y filtra por prominence (fija o autoescalada con ATR). Luego fuerza
-    alternancia HIGH/LOW.
-
-    Args:
-        config: Parametros del detector.
-    """
-
-    def __init__(self, config: ScipyPeaksConfig | None = None) -> None:
-        self.config = config or ScipyPeaksConfig()
-
-    def detect(self, ohlc: pd.DataFrame) -> list[SwingPoint]:
-        """Detecta swings usando scipy.signal.find_peaks.
-
-        Args:
-            ohlc: DataFrame OHLC con DatetimeIndex.
-
-        Returns:
-            Lista de SwingPoint alternando HIGH/LOW.
-        """
-        self._validate_ohlc(ohlc)
-
-        high = ohlc["high"].to_numpy(dtype=np.float64)
-        low = ohlc["low"].to_numpy(dtype=np.float64)
-        close = ohlc["close"].to_numpy(dtype=np.float64)
-        dates = ohlc.index
-        n = len(ohlc)
-
-        smoothed = (
-            pd.Series(close)
-            .rolling(
-                self.config.smoothing_window,
-                center=not self.config.causal,
-                min_periods=1,
-            )
-            .mean()
-            .to_numpy()
-        )
-
-        atr: np.ndarray | None = None
-        if self.config.prominence is None:
-            atr = _compute_atr(high, low, close, 14)
-
-        peak_indices = self._find_filtered_peaks(smoothed, atr, is_high=True)
-        valley_indices = self._find_filtered_peaks(smoothed, atr, is_high=False)
-
-        margin = self.config.stability_margin
-        if margin is None:
-            margin = self.config.min_distance_bars
-
-        if self.config.causal:
-            lookforward = margin
-            max_allowed = n - 1 - margin
-            if max_allowed < 0:
-                logger.warning(
-                    "Series too short for causal Scipy peaks (%d bars, need > %d)",
-                    n,
-                    margin,
-                )
-                return []
-            peak_indices = peak_indices[peak_indices <= max_allowed]
-            valley_indices = valley_indices[valley_indices <= max_allowed]
-        else:
-            lookforward = self.config.min_distance_bars // 2 + 1
-
-        raw_swings: list[SwingPoint] = []
-        for idx in peak_indices:
-            confirmed_idx = min(idx + lookforward, n - 1)
-            raw_swings.append(
-                SwingPoint(
-                    date=dates[idx],
-                    price=float(high[idx]),
-                    type=SwingType.HIGH,
-                    confirmed_at=dates[confirmed_idx],
-                    metadata={"detector": "scipy_peaks"},
-                )
-            )
-        for idx in valley_indices:
-            confirmed_idx = min(idx + lookforward, n - 1)
-            raw_swings.append(
-                SwingPoint(
-                    date=dates[idx],
-                    price=float(low[idx]),
-                    type=SwingType.LOW,
-                    confirmed_at=dates[confirmed_idx],
-                    metadata={"detector": "scipy_peaks"},
-                )
-            )
-
-        raw_swings.sort(key=lambda s: s.date)
-        swings = self._enforce_alternation(raw_swings)
-
-        logger.debug(
-            "Scipy peaks detected %d swings (causal=%s)", len(swings), self.config.causal
-        )
-        return swings
-
-    def _find_filtered_peaks(
-        self, smoothed: np.ndarray, atr: np.ndarray | None, *, is_high: bool
-    ) -> np.ndarray:
-        """Encuentra picos o valles filtrados por prominence.
-
-        Args:
-            smoothed: Serie suavizada.
-            atr: ATR array para autoescalar prominence (None si prominence es fija).
-            is_high: True para buscar picos, False para valles.
-
-        Returns:
-            Array de indices de los picos/valles que pasan el filtro.
-        """
-        signal = smoothed if is_high else -smoothed
-
-        indices, _ = find_peaks(signal, distance=self.config.min_distance_bars)
-        if len(indices) == 0:
-            return indices
-
-        proms, _, _ = peak_prominences(signal, indices)
-
-        if self.config.prominence is not None:
-            mask = proms >= self.config.prominence
-        else:
-            atr_at_peaks = atr[indices]  # type: ignore[index]
-            mask = proms >= self.config.prominence_atr_mult * atr_at_peaks
-
-        return indices[mask]
-
-    @staticmethod
-    def _enforce_alternation(swings: list[SwingPoint]) -> list[SwingPoint]:
-        """Fuerza alternancia HIGH/LOW quedandose con el extremo mas significativo.
-
-        Args:
-            swings: Lista de swings ordenada por fecha, posiblemente con tipos
-                consecutivos repetidos.
-
-        Returns:
-            Lista filtrada con alternancia estricta HIGH/LOW.
-        """
-        if len(swings) <= 1:
-            return list(swings)
-
-        result: list[SwingPoint] = [swings[0]]
-        for sw in swings[1:]:
-            if sw.type == result[-1].type:
-                if sw.type == SwingType.HIGH and sw.price > result[-1].price:
-                    result[-1] = sw
-                elif sw.type == SwingType.LOW and sw.price < result[-1].price:
-                    result[-1] = sw
-            else:
-                result.append(sw)
-        return result
-
-    @classmethod
-    def from_yaml(cls, yaml_path: str | Path) -> ScipyPeaksDetector:
-        """Crea una instancia desde un archivo YAML.
-
-        Args:
-            yaml_path: Ruta al archivo YAML con la seccion swing_detection.scipy_peaks.
-
-        Returns:
-            Instancia configurada de ScipyPeaksDetector.
-        """
-        with open(yaml_path) as f:
-            raw = yaml.safe_load(f)
-        params = raw["swing_detection"]["scipy_peaks"]
-        return cls(config=ScipyPeaksConfig(**params))

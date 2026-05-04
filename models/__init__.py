@@ -1,6 +1,6 @@
 """Dataclasses, enums y configuraciones para el detector de VCP."""
 
-from models.configs import ATRZigZagConfig, ScipyPeaksConfig
+from models.configs import ATRZigZagConfig
 from models.enums import SwingType
 from models.types import (
     ATRCompressionResult,
@@ -18,7 +18,6 @@ __all__ = [
     "Contraction",
     "DecreasingSequence",
     "PivotInfo",
-    "ScipyPeaksConfig",
     "SwingPoint",
     "SwingType",
     "VCPSignal",

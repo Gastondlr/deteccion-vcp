@@ -1,7 +1,7 @@
 """Detectores heuristicos de VCP y swing points.
 
 Expone las funciones principales del pipeline:
-- ATRZigZagDetector / ScipyPeaksDetector: Paso 1 (deteccion de swings).
+- ATRZigZagDetector: Paso 1 (deteccion de swings).
 - compute_contractions: Paso 2 (calculo de contracciones).
 - detect_decreasing_sequence: Paso 3 (secuencia decreciente + filtros de calidad).
 - verify_atr_compression: Paso 4 (compresion de ATR).
@@ -30,7 +30,6 @@ from vcp_detection.heuristic.pivot_breakout import (
 )
 from vcp_detection.heuristic.swing_detector import (
     ATRZigZagDetector,
-    ScipyPeaksDetector,
     SwingDetector,
 )
 from vcp_detection.heuristic.volume_contraction import (
@@ -40,7 +39,6 @@ from vcp_detection.heuristic.volume_contraction import (
 
 __all__ = [
     "ATRZigZagDetector",
-    "ScipyPeaksDetector",
     "SwingDetector",
     "compute_contractions",
     "contractions_to_dataframe",

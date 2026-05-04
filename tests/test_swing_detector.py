@@ -6,9 +6,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from models.configs import ATRZigZagConfig, ScipyPeaksConfig
+from models.configs import ATRZigZagConfig
 from models.enums import SwingType
-from vcp_detection.heuristic.swing_detector import ATRZigZagDetector, ScipyPeaksDetector
+from vcp_detection.heuristic.swing_detector import ATRZigZagDetector
 
 
 class TestATRZigZagDetector:
@@ -84,20 +84,12 @@ class TestATRZigZagDetector:
         swings = detector.detect(df)
         assert len(swings) == 0
 
-
-class TestScipyPeaksDetector:
-    """Tests para el detector basado en scipy."""
-
-    def test_detects_swings(self, synthetic_vcp_ohlc: pd.DataFrame) -> None:
-        """Debe detectar swings en datos sinteticos."""
-        detector = ScipyPeaksDetector(ScipyPeaksConfig(min_distance_bars=10))
+    def test_last_swing_is_unconfirmed(self, synthetic_vcp_ohlc: pd.DataFrame) -> None:
+        """El ultimo swing debe estar marcado como no confirmado."""
+        detector = ATRZigZagDetector()
         swings = detector.detect(synthetic_vcp_ohlc)
+
         assert len(swings) > 0
-
-    def test_alternation(self, synthetic_vcp_ohlc: pd.DataFrame) -> None:
-        """Swings deben alternar HIGH/LOW."""
-        detector = ScipyPeaksDetector()
-        swings = detector.detect(synthetic_vcp_ohlc)
-
-        for i in range(1, len(swings)):
-            assert swings[i].type != swings[i - 1].type
+        assert swings[-1].metadata.get("confirmed") is False
+        for sw in swings[:-1]:
+            assert sw.metadata.get("confirmed") is True

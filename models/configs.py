@@ -21,28 +21,3 @@ class ATRZigZagConfig:
     atr_length: int = 14
     atr_mult: float = 2.0
     use_close_only: bool = False
-
-
-@dataclass
-class ScipyPeaksConfig:
-    """Configuracion del detector de swings basado en scipy.signal.find_peaks.
-
-    Attributes:
-        smoothing_window: Ventana de SMA para suavizar antes de detectar picos.
-        prominence: Prominence minima del pico (unidades de precio). Si None,
-            se autoescala con ATR.
-        prominence_atr_mult: Multiplo de ATR(14) para autoescalar prominence
-            cuando prominence es None.
-        min_distance_bars: Distancia minima entre picos consecutivos en bars.
-        stability_margin: Bars desde el final a excluir en modo causal. Si None,
-            usa min_distance_bars.
-        causal: Si True, usa SMA no centrada y descarta swings inestables del
-            final. Elimina look-ahead para uso en backtesting.
-    """
-
-    smoothing_window: int = 3
-    prominence: float | None = None
-    prominence_atr_mult: float = 1.0
-    min_distance_bars: int = 5
-    stability_margin: int | None = None
-    causal: bool = False
