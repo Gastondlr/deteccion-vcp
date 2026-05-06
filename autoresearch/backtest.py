@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from math import sqrt
 from typing import Any
 
@@ -9,16 +10,148 @@ import numpy as np
 import pandas as pd
 
 from models.configs import ATRZigZagConfig
+from models.types import VCPSignal, VolumeContractionResult
 from vcp_detection.analysis import group_signals_into_patterns, simulate_trade
 from vcp_detection.heuristic import ATRZigZagDetector, run_full_vcp_pipeline
+from vcp_detection.heuristic.atr_compression import verify_atr_compression
+from vcp_detection.heuristic.decreasing_sequence import detect_decreasing_sequence
+from vcp_detection.heuristic.pivot_breakout import detect_breakout_signal
+from vcp_detection.heuristic.volume_contraction import verify_volume_contraction
+
+from autoresearch.caching import SwingCache
+
+logger = logging.getLogger(__name__)
 
 N_MIN_TRADES = 10
+
+
+def run_pipeline_cached(
+    ohlc: pd.DataFrame,
+    ticker: str,
+    params: dict[str, Any],
+    cache: SwingCache,
+    evaluation_dates: pd.DatetimeIndex | None = None,
+    deduplicate: bool = False,
+    dedup_cooldown_bars: int = 1,
+) -> dict[pd.Timestamp, VCPSignal | None]:
+    """Pipeline VCP con cache de swings/contracciones.
+
+    Reproduce EXACTAMENTE la lógica de run_full_vcp_pipeline (pivot_breakout.py:376)
+    pero obtiene swings y contracciones del cache en lugar de recomputarlos.
+    """
+    swing_config: ATRZigZagConfig = params["swing_config"]
+    sequence_params: dict = params["sequence_params"]
+    compression_params: dict = params["compression_params"]
+    breakout_params: dict = params["breakout_params"]
+    volume_contraction_params: dict | None = params.get("volume_contraction_params")
+
+    if evaluation_dates is None:
+        evaluation_dates = ohlc.index
+
+    cached = cache.get_or_compute(ticker, ohlc, swing_config)
+    all_contractions = cached["contractions"]
+
+    active_pivot: float | None = None
+    active_stop: float | None = None
+    invalidated_at: int | None = None
+
+    results: dict[pd.Timestamp, VCPSignal | None] = {}
+    for dt in evaluation_dates:
+        dt_loc = ohlc.index.get_loc(dt)
+
+        if deduplicate and active_pivot is not None and active_stop is not None:
+            close_today = float(ohlc.loc[dt, "close"])
+            if close_today < active_stop:
+                invalidated_at = dt_loc
+                active_pivot = None
+                active_stop = None
+
+        seq = detect_decreasing_sequence(
+            all_contractions,
+            evaluation_date=dt,
+            ohlc_index=ohlc.index,
+            **sequence_params,
+        )
+        if seq is None:
+            results[dt] = None
+            continue
+
+        try:
+            atr_result = verify_atr_compression(seq, ohlc, **compression_params)
+        except ValueError:
+            results[dt] = None
+            continue
+
+        if not atr_result.passes:
+            results[dt] = None
+            continue
+
+        vol_contraction_result: VolumeContractionResult | None = None
+        if volume_contraction_params is not None:
+            try:
+                vol_contraction_result = verify_volume_contraction(
+                    sequence=seq, ohlc=ohlc, **volume_contraction_params,
+                )
+            except ValueError:
+                results[dt] = None
+                continue
+            if not vol_contraction_result.passes:
+                results[dt] = None
+                continue
+
+        try:
+            signal = detect_breakout_signal(
+                sequence=seq,
+                atr_compression_result=atr_result,
+                ohlc=ohlc,
+                evaluation_date=dt,
+                volume_contraction_result=vol_contraction_result,
+                **breakout_params,
+            )
+        except ValueError:
+            results[dt] = None
+            continue
+
+        if signal is None:
+            results[dt] = None
+            continue
+
+        if deduplicate:
+            pivot_price = signal.pivot_price
+            is_same_pattern = (
+                active_pivot is not None
+                and abs(pivot_price - active_pivot) < 1e-10
+            )
+            in_cooldown = (
+                invalidated_at is not None
+                and (dt_loc - invalidated_at) < dedup_cooldown_bars
+            )
+
+            if is_same_pattern or in_cooldown:
+                results[dt] = None
+                continue
+
+            active_pivot = pivot_price
+            active_stop = signal.suggested_stop
+            invalidated_at = None
+
+        results[dt] = signal
+
+    n_signals = sum(1 for v in results.values() if v is not None)
+    logger.debug(
+        "Cached VCP pipeline: %d dates evaluated, %d signals generated (%.1f%%)",
+        len(evaluation_dates),
+        n_signals,
+        100 * n_signals / max(len(evaluation_dates), 1),
+    )
+    return results
 
 
 def run_backtest_for_params(
     universe: dict[str, pd.DataFrame],
     params: dict[str, Any],
     evaluation_window: tuple[pd.Timestamp, pd.Timestamp] | None = None,
+    cache: SwingCache | None = None,
 ) -> dict:
     """Corre el pipeline VCP completo sobre todos los tickers del universo.
 
@@ -28,6 +161,8 @@ def run_backtest_for_params(
             volume_contraction_params, breakout_params, grouping_params, risk_params.
         evaluation_window: Tupla (start, end) opcional para restringir las fechas
             de evaluación del pipeline.
+        cache: SwingCache opcional. Si se pasa, usa run_pipeline_cached para
+            evitar recomputar swings/contracciones con el mismo swing_config.
 
     Returns:
         Dict con keys:
@@ -52,16 +187,25 @@ def run_backtest_for_params(
             start, end = evaluation_window
             eval_dates = ohlc.index[(ohlc.index >= start) & (ohlc.index <= end)]
 
-        detector = ATRZigZagDetector(swing_config)
-        results = run_full_vcp_pipeline(
-            ohlc=ohlc,
-            swing_detector=detector,
-            sequence_params=sequence_params,
-            compression_params=compression_params,
-            breakout_params=breakout_params,
-            evaluation_dates=eval_dates,
-            volume_contraction_params=volume_contraction_params,
-        )
+        if cache is not None:
+            results = run_pipeline_cached(
+                ohlc=ohlc,
+                ticker=ticker,
+                params=params,
+                cache=cache,
+                evaluation_dates=eval_dates,
+            )
+        else:
+            detector = ATRZigZagDetector(swing_config)
+            results = run_full_vcp_pipeline(
+                ohlc=ohlc,
+                swing_detector=detector,
+                sequence_params=sequence_params,
+                compression_params=compression_params,
+                breakout_params=breakout_params,
+                evaluation_dates=eval_dates,
+                volume_contraction_params=volume_contraction_params,
+            )
 
         signals = {dt: sig for dt, sig in results.items() if sig is not None}
         patterns = group_signals_into_patterns(

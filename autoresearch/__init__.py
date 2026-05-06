@@ -5,6 +5,7 @@ from autoresearch.backtest import (
     compute_objective_score,
     run_backtest_for_params,
 )
+from autoresearch.caching import SwingCache
 from autoresearch.data_loader import (
     filter_tickers_by_start_date,
     find_common_period,
@@ -25,6 +26,7 @@ from autoresearch.search_space import DEFAULT_RISK_PARAMS, sample_params
 __all__ = [
     "DEFAULT_RISK_PARAMS",
     "MLflowOptunaLogger",
+    "SwingCache",
     "build_objective_function",
     "compute_aggregate_metrics",
     "compute_objective_score",

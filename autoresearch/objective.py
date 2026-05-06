@@ -8,26 +8,33 @@ import optuna
 import pandas as pd
 
 from autoresearch.backtest import compute_objective_score, run_backtest_for_params
+from autoresearch.caching import SwingCache
 from autoresearch.search_space import sample_params
 
 
 def build_objective_function(
     universe: dict[str, pd.DataFrame],
     evaluation_window: tuple[pd.Timestamp, pd.Timestamp] | None = None,
+    cache: SwingCache | None = None,
 ) -> Callable[[optuna.Trial], float]:
     """Construye la función objetivo como closure sobre el universo de datos.
 
     Args:
         universe: Dict {ticker: DataFrame OHLCV}.
         evaluation_window: Restricción temporal opcional para evaluación.
+        cache: SwingCache opcional. Si None, crea uno nuevo automáticamente.
 
     Returns:
         Callable que recibe un Trial y retorna el score.
     """
+    if cache is None:
+        cache = SwingCache()
 
     def objective(trial: optuna.Trial) -> float:
         params = sample_params(trial)
-        result = run_backtest_for_params(universe, params, evaluation_window)
+        result = run_backtest_for_params(
+            universe, params, evaluation_window=evaluation_window, cache=cache,
+        )
         metrics = result["metrics"]
         score = compute_objective_score(metrics)
 
