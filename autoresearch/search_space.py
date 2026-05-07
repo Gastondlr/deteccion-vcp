@@ -47,6 +47,15 @@ def sample_params(trial: optuna.Trial) -> dict[str, Any]:
     vol_contraction_threshold = trial.suggest_float("vol_contraction_threshold", 0.75, 0.95)
     volume_ratio_threshold = trial.suggest_float("volume_ratio_threshold", 1.3, 2.0)
     max_gap_days = trial.suggest_int("max_gap_days", 20, 40)
+    require_ascending_lows = trial.suggest_categorical(
+        "require_ascending_lows", [True, False],
+    )
+    ascending_lows_tolerance = trial.suggest_float(
+        "ascending_lows_tolerance", 0.0, 0.05, step=0.01,
+    )
+    max_entry_distance_pct = trial.suggest_float(
+        "max_entry_distance_pct", 0.02, 0.08, step=0.01,
+    )
 
     return {
         "swing_config": ATRZigZagConfig(
@@ -63,6 +72,8 @@ def sample_params(trial: optuna.Trial) -> dict[str, Any]:
             "max_depth_pct": max_depth_pct,
             "min_total_reduction": min_total_reduction,
             "max_gap_between_contractions_days": None,
+            "require_ascending_lows": require_ascending_lows,
+            "ascending_lows_tolerance": ascending_lows_tolerance,
         },
         "compression_params": {
             "method": "ratio",
@@ -79,6 +90,7 @@ def sample_params(trial: optuna.Trial) -> dict[str, Any]:
             "volume_ratio_threshold": volume_ratio_threshold,
             "volume_lookback_days": 50,
             "require_volume_confirmation": True,
+            "max_entry_distance_pct": max_entry_distance_pct,
         },
         "grouping_params": {
             "max_gap_days": max_gap_days,

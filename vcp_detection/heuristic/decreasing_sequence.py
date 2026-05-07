@@ -37,6 +37,10 @@ FILTROS DE CALIDAD (post-monotonia)
   la secuencia se rechaza.
 - min_total_reduction: depths[-1] / depths[0] <= threshold (ej: 0.70 significa
   que la ultima contraccion debe ser <= 70% de la primera).
+- require_ascending_lows: Exige que los lows de cada contraccion sean
+  ascendentes (low[i+1] > low[i]). Valida que los compradores entran a niveles
+  cada vez mas altos, hallmark de una base saludable Stage 2.
+  ascending_lows_tolerance controla el margen permitido.
 
 ============================================================================
 ALGORITMO
@@ -84,6 +88,8 @@ def detect_decreasing_sequence(
     max_depth_pct: float | None = None,
     min_total_reduction: float | None = None,
     max_gap_between_contractions_days: int | None = None,
+    require_ascending_lows: bool = True,
+    ascending_lows_tolerance: float = 0.0,
 ) -> DecreasingSequence | None:
     """Evalua si existe una secuencia decreciente de contracciones terminando
     en o antes de evaluation_date.
@@ -104,6 +110,12 @@ def detect_decreasing_sequence(
             entre el low de una contraccion y el high de la siguiente. Rechaza
             secuencias donde alguna recuperacion entre contracciones sea demasiado
             larga (patron demasiado estirado). None para desactivar.
+        require_ascending_lows: Exige que los low_swing.price de cada contraccion
+            sean ascendentes (compradores entrando a niveles cada vez mas altos).
+            True por defecto — una base VCP saludable tiene lows ascendentes.
+        ascending_lows_tolerance: Margen permitido para ascending lows. Con 0.0
+            (default) se exige low[i+1] >= low[i]. Con ej. 0.02, se permite
+            low[i+1] >= low[i] * (1 - 0.02).
 
     Returns:
         DecreasingSequence si encontro secuencia valida, None en caso contrario.
@@ -142,6 +154,9 @@ def detect_decreasing_sequence(
         if not _passes_gap_filter(tail, max_gap_between_contractions_days, metrics):
             continue
 
+        if not _passes_ascending_lows_filter(tail, require_ascending_lows, ascending_lows_tolerance, metrics):
+            continue
+
         return DecreasingSequence(
             contractions=tail,
             evaluation_date=evaluation_date,
@@ -167,6 +182,8 @@ def scan_for_sequences(
     max_depth_pct: float | None = None,
     min_total_reduction: float | None = None,
     max_gap_between_contractions_days: int | None = None,
+    require_ascending_lows: bool = True,
+    ascending_lows_tolerance: float = 0.0,
 ) -> dict[pd.Timestamp, DecreasingSequence | None]:
     """Aplica detect_decreasing_sequence sobre multiples fechas de evaluacion.
 
@@ -183,6 +200,8 @@ def scan_for_sequences(
         max_depth_pct: Profundidad maxima permitida por contraccion individual.
         min_total_reduction: Ratio maximo depths[-1]/depths[0].
         max_gap_between_contractions_days: Maximo de dias calendario entre contracciones.
+        require_ascending_lows: Exige lows ascendentes entre contracciones.
+        ascending_lows_tolerance: Margen permitido para ascending lows.
 
     Returns:
         Dict ordenado {evaluation_date: DecreasingSequence | None}.
@@ -202,6 +221,8 @@ def scan_for_sequences(
             max_depth_pct=max_depth_pct,
             min_total_reduction=min_total_reduction,
             max_gap_between_contractions_days=max_gap_between_contractions_days,
+            require_ascending_lows=require_ascending_lows,
+            ascending_lows_tolerance=ascending_lows_tolerance,
         )
     n_detected = sum(1 for v in results.values() if v is not None)
     logger.debug(
@@ -285,6 +306,45 @@ def _passes_gap_filter(
     metrics["max_gap_observed_days"] = max_observed
     metrics["max_gap_threshold_days"] = max_gap_days
     return True
+
+
+def _passes_ascending_lows_filter(
+    tail: list[Contraction],
+    require: bool,
+    tolerance: float,
+    metrics: dict,
+) -> bool:
+    """Verifica que los lows de las contracciones sean ascendentes.
+
+    En un VCP saludable los compradores entran a niveles cada vez mas altos:
+    low[i+1] >= low[i] * (1 - tolerance). Lows descendentes sugieren
+    debilidad y posible transicion a Stage 4.
+
+    Args:
+        tail: Lista de contracciones en orden cronologico.
+        require: Si False, el filtro se desactiva y siempre retorna True.
+        tolerance: Margen permitido (ej: 0.02 = 2%). Con 0.0 se exige
+            low[i+1] >= low[i] estrictamente.
+        metrics: Dict de metricas, se enriquece in-place.
+
+    Returns:
+        True si pasa el filtro (lows ascendentes o filtro desactivado).
+    """
+    if not require or len(tail) < 2:
+        return True
+
+    lows = [c.low_swing.price for c in tail]
+    ascending = True
+    for i in range(1, len(lows)):
+        if lows[i] < lows[i - 1] * (1 - tolerance):
+            ascending = False
+            break
+
+    metrics["ascending_lows_required"] = True
+    metrics["ascending_lows_tolerance"] = tolerance
+    metrics["ascending_lows_values"] = lows
+    metrics["ascending_lows_passed"] = ascending
+    return ascending
 
 
 # ---------------------------------------------------------------------------

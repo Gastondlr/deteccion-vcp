@@ -204,6 +204,101 @@ class TestDetectDecreasingSequence:
         )
         assert result is None
 
+    def test_ascending_lows_accepts_valid_vcp(self) -> None:
+        """Lows ascendentes (85, 90, 95) deben pasar con require_ascending_lows=True."""
+        contractions = [
+            _make_contraction("2023-01-10", "2023-01-20", 100, 85),   # 15%
+            _make_contraction("2023-02-10", "2023-02-20", 100, 90),   # 10%
+            _make_contraction("2023-03-10", "2023-03-20", 100, 95),   # 5%
+        ]
+        result = detect_decreasing_sequence(
+            contractions,
+            evaluation_date=pd.Timestamp("2023-04-01"),
+            method="tolerance",
+            min_contractions=2,
+            lookback_bars=200,
+            require_ascending_lows=True,
+        )
+        assert result is not None
+        assert result.n_contractions == 3
+        assert result.method_metrics["ascending_lows_passed"] is True
+
+    def test_ascending_lows_rejects_descending_lows(self) -> None:
+        """Lows descendentes (85, 80, 75) deben ser rechazados."""
+        contractions = [
+            _make_contraction("2023-01-10", "2023-01-20", 100, 85),   # 15%
+            _make_contraction("2023-02-10", "2023-02-20", 95, 80),    # 15.8%
+            _make_contraction("2023-03-10", "2023-03-20", 90, 75),    # 16.7%
+        ]
+        result = detect_decreasing_sequence(
+            contractions,
+            evaluation_date=pd.Timestamp("2023-04-01"),
+            method="tolerance",
+            tolerance=0.20,
+            min_contractions=2,
+            lookback_bars=200,
+            require_ascending_lows=True,
+        )
+        assert result is None
+
+    def test_ascending_lows_tolerance_accepts_small_dip(self) -> None:
+        """Con tolerancia de 2%, un low ligeramente menor debe aceptarse."""
+        contractions = [
+            _make_contraction("2023-01-10", "2023-01-20", 100, 85),   # 15%
+            _make_contraction("2023-02-10", "2023-02-20", 100, 84.5), # 15.5% — low baja 0.6%
+            _make_contraction("2023-03-10", "2023-03-20", 100, 95),   # 5%
+        ]
+        result = detect_decreasing_sequence(
+            contractions,
+            evaluation_date=pd.Timestamp("2023-04-01"),
+            method="tolerance",
+            tolerance=0.10,
+            min_contractions=2,
+            lookback_bars=200,
+            require_ascending_lows=True,
+            ascending_lows_tolerance=0.02,
+        )
+        assert result is not None
+
+    def test_ascending_lows_disabled(self) -> None:
+        """Con require_ascending_lows=False, lows descendentes no rechazan."""
+        contractions = [
+            _make_contraction("2023-01-10", "2023-01-20", 100, 85),   # 15%
+            _make_contraction("2023-02-10", "2023-02-20", 95, 80),    # 15.8%
+            _make_contraction("2023-03-10", "2023-03-20", 90, 75),    # 16.7%
+        ]
+        result = detect_decreasing_sequence(
+            contractions,
+            evaluation_date=pd.Timestamp("2023-04-01"),
+            method="tolerance",
+            tolerance=0.20,
+            min_contractions=2,
+            lookback_bars=200,
+            require_ascending_lows=False,
+        )
+        assert result is not None
+
+    def test_ascending_lows_metrics_populated(self) -> None:
+        """Las metricas de ascending lows deben estar en method_metrics."""
+        contractions = [
+            _make_contraction("2023-01-10", "2023-01-20", 100, 85),
+            _make_contraction("2023-02-10", "2023-02-20", 100, 90),
+            _make_contraction("2023-03-10", "2023-03-20", 100, 95),
+        ]
+        result = detect_decreasing_sequence(
+            contractions,
+            evaluation_date=pd.Timestamp("2023-04-01"),
+            method="strict",
+            min_contractions=2,
+            lookback_bars=200,
+            require_ascending_lows=True,
+        )
+        assert result is not None
+        m = result.method_metrics
+        assert m["ascending_lows_required"] is True
+        assert m["ascending_lows_passed"] is True
+        assert m["ascending_lows_values"] == [85.0, 90.0, 95.0]
+
     def test_zero_depth_handled_in_tolerance(self) -> None:
         """Profundidad cero no debe causar division por cero."""
         contractions = [

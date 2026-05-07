@@ -220,6 +220,68 @@ class TestDetectBreakoutSignal:
                 volume_method="invalid",  # type: ignore
             )
 
+    def test_max_entry_distance_accepts_close_breakout(self) -> None:
+        """Breakout dentro del max_entry_distance_pct debe generar senal."""
+        seq = _make_sequence()
+        atr_result = _make_passing_atr_result()
+        ohlc = _make_ohlc_around_pivot(100.0, breakout=True)
+        # close = 101.0 → distance = 1% del pivot
+        eval_date = ohlc.index[-1]
+
+        signal = detect_breakout_signal(
+            seq, atr_result, ohlc, eval_date,
+            require_volume_confirmation=False,
+            max_entry_distance_pct=0.03,
+        )
+        assert signal is not None
+        assert signal.metadata["entry_distance_pct"] == pytest.approx(0.01, rel=1e-6)
+
+    def test_max_entry_distance_rejects_far_breakout(self) -> None:
+        """Breakout que excede max_entry_distance_pct debe retornar None."""
+        seq = _make_sequence()
+        atr_result = _make_passing_atr_result()
+        ohlc = _make_ohlc_around_pivot(100.0, breakout=True)
+        # Forzar close muy por encima del pivot
+        ohlc.loc[ohlc.index[-1], "close"] = 106.0
+        eval_date = ohlc.index[-1]
+
+        signal = detect_breakout_signal(
+            seq, atr_result, ohlc, eval_date,
+            require_volume_confirmation=False,
+            max_entry_distance_pct=0.03,
+        )
+        assert signal is None
+
+    def test_max_entry_distance_none_disables_filter(self) -> None:
+        """Con max_entry_distance_pct=None, cualquier distancia es aceptada."""
+        seq = _make_sequence()
+        atr_result = _make_passing_atr_result()
+        ohlc = _make_ohlc_around_pivot(100.0, breakout=True)
+        ohlc.loc[ohlc.index[-1], "close"] = 115.0
+        eval_date = ohlc.index[-1]
+
+        signal = detect_breakout_signal(
+            seq, atr_result, ohlc, eval_date,
+            require_volume_confirmation=False,
+            max_entry_distance_pct=None,
+        )
+        assert signal is not None
+
+    def test_max_entry_distance_edge_exact(self) -> None:
+        """Distancia exactamente igual al limite debe pasar (no es >)."""
+        seq = _make_sequence()
+        atr_result = _make_passing_atr_result()
+        ohlc = _make_ohlc_around_pivot(100.0, breakout=True)
+        ohlc.loc[ohlc.index[-1], "close"] = 105.0  # distance = 5%
+        eval_date = ohlc.index[-1]
+
+        signal = detect_breakout_signal(
+            seq, atr_result, ohlc, eval_date,
+            require_volume_confirmation=False,
+            max_entry_distance_pct=0.05,
+        )
+        assert signal is not None
+
     def test_stop_distance_is_positive_fraction(self) -> None:
         """El stop distance debe ser una fraccion positiva < 1."""
         seq = _make_sequence()
