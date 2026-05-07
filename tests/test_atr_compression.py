@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 
 from models.configs import ATRZigZagConfig
-from vcp_detection.heuristic.atr_compression import verify_atr_compression, _compute_atr
+from vcp_detection.heuristic.atr_compression import verify_atr_compression, compute_atr
 from vcp_detection.heuristic.contractions import compute_contractions
 from vcp_detection.heuristic.decreasing_sequence import detect_decreasing_sequence
 from vcp_detection.heuristic.swing_detector import ATRZigZagDetector
@@ -18,18 +18,18 @@ class TestComputeATR:
 
     def test_atr_has_correct_length(self, synthetic_vcp_ohlc: pd.DataFrame) -> None:
         """ATR debe tener la misma longitud que el input."""
-        atr = _compute_atr(synthetic_vcp_ohlc, period=14)
+        atr = compute_atr(synthetic_vcp_ohlc, period=14)
         assert len(atr) == len(synthetic_vcp_ohlc)
 
     def test_atr_nan_for_initial_period(self, synthetic_vcp_ohlc: pd.DataFrame) -> None:
         """Los primeros 'period' valores deben ser NaN."""
-        atr = _compute_atr(synthetic_vcp_ohlc, period=14)
+        atr = compute_atr(synthetic_vcp_ohlc, period=14)
         assert atr.iloc[:14].isna().all()
         assert atr.iloc[14:].notna().all()
 
     def test_atr_is_positive(self, synthetic_vcp_ohlc: pd.DataFrame) -> None:
         """ATR debe ser siempre positivo donde esta definido."""
-        atr = _compute_atr(synthetic_vcp_ohlc, period=14)
+        atr = compute_atr(synthetic_vcp_ohlc, period=14)
         valid = atr.dropna()
         assert (valid > 0).all()
 

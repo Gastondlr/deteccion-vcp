@@ -11,6 +11,7 @@ Expone las funciones principales del pipeline:
 """
 
 from vcp_detection.heuristic.atr_compression import (
+    compute_atr,
     verify_atr_compression,
     verify_atr_compression_batch,
 )
@@ -39,6 +40,7 @@ from vcp_detection.heuristic.volume_contraction import (
 
 __all__ = [
     "ATRZigZagDetector",
+    "compute_atr",
     "SwingDetector",
     "compute_contractions",
     "contractions_to_dataframe",

@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 
 from models.types import VCPSignal
+from vcp_detection.heuristic.atr_compression import compute_atr
 
 
 def group_signals_into_patterns(
@@ -91,17 +92,43 @@ def simulate_trade(
     sma_period = risk_params["trailing_sma_period"]
     vol_factor = risk_params["trailing_volume_factor"]
 
+    trailing_stop_method = risk_params.get("trailing_stop_method", "sma")
+    trailing_atr_period = risk_params.get("trailing_atr_period", 14)
+    trailing_atr_multiplier = risk_params.get("trailing_atr_multiplier", 3.0)
+    max_bars_no_progress = risk_params.get("max_bars_without_progress", None)
+    min_progress_r = risk_params.get("min_progress_r", 0.5)
+
     entry_loc = ohlc.index.get_loc(entry_date)
     end_loc = min(entry_loc + max_hold_days, len(ohlc) - 1)
+
+    atr_series = None
+    if trailing_stop_method == "atr":
+        atr_series = compute_atr(ohlc, trailing_atr_period)
 
     stop = initial_stop
     stop_history = [(entry_date, stop)]
     max_r = 0.0
+    highest_close = entry_price
+    last_progress_loc = entry_loc
+    best_r_at_check = 0.0
+
+    def _make_result(dt, close, profit, reason):
+        return {
+            "exit_date": dt,
+            "exit_price": close,
+            "exit_reason": reason,
+            "duration_days": (dt - entry_date).days,
+            "pnl_pct": (close - entry_price) / entry_price,
+            "r_multiple": profit / initial_risk if initial_risk > 0 else 0,
+            "max_r": max_r,
+            "stop_history": stop_history,
+        }
 
     for loc in range(entry_loc + 1, end_loc + 1):
         dt = ohlc.index[loc]
         close = float(ohlc["close"].iloc[loc])
         profit = close - entry_price
+        r_mult = 0.0
 
         if initial_risk > 0:
             r_mult = profit / initial_risk
@@ -113,43 +140,39 @@ def simulate_trade(
                 if new_stop > stop:
                     stop = new_stop
 
+        if close > highest_close:
+            highest_close = close
+
+        if trailing_stop_method == "atr" and atr_series is not None:
+            atr_val = float(atr_series.iloc[loc])
+            if not np.isnan(atr_val):
+                atr_trail = highest_close - trailing_atr_multiplier * atr_val
+                if atr_trail > stop:
+                    stop = atr_trail
+
         stop_history.append((dt, stop))
 
         if close <= stop:
-            exit_reason = (
-                "trailing_stop" if stop >= entry_price - 1e-10 else "stop_loss"
-            )
-            return {
-                "exit_date": dt,
-                "exit_price": close,
-                "exit_reason": exit_reason,
-                "duration_days": (dt - entry_date).days,
-                "pnl_pct": (close - entry_price) / entry_price,
-                "r_multiple": profit / initial_risk if initial_risk > 0 else 0,
-                "max_r": max_r,
-                "stop_history": stop_history,
-            }
+            reason = "trailing_stop" if stop >= entry_price - 1e-10 else "stop_loss"
+            return _make_result(dt, close, profit, reason)
 
-        if loc >= sma_period:
-            sma_slice = ohlc["close"].iloc[loc - sma_period + 1 : loc + 1]
-            sma_val = float(sma_slice.mean())
-            if close < sma_val and "volume" in ohlc.columns:
-                vol_slice = ohlc["volume"].iloc[loc - sma_period + 1 : loc + 1]
-                avg_vol = float(vol_slice.mean())
-                cur_vol = float(ohlc["volume"].iloc[loc])
-                if avg_vol > 0 and cur_vol > avg_vol * vol_factor:
-                    return {
-                        "exit_date": dt,
-                        "exit_price": close,
-                        "exit_reason": "distribution",
-                        "duration_days": (dt - entry_date).days,
-                        "pnl_pct": (close - entry_price) / entry_price,
-                        "r_multiple": profit / initial_risk
-                        if initial_risk > 0
-                        else 0,
-                        "max_r": max_r,
-                        "stop_history": stop_history,
-                    }
+        if trailing_stop_method == "sma":
+            if loc >= sma_period:
+                sma_slice = ohlc["close"].iloc[loc - sma_period + 1 : loc + 1]
+                sma_val = float(sma_slice.mean())
+                if close < sma_val and "volume" in ohlc.columns:
+                    vol_slice = ohlc["volume"].iloc[loc - sma_period + 1 : loc + 1]
+                    avg_vol = float(vol_slice.mean())
+                    cur_vol = float(ohlc["volume"].iloc[loc])
+                    if avg_vol > 0 and cur_vol > avg_vol * vol_factor:
+                        return _make_result(dt, close, profit, "distribution")
+
+        if max_bars_no_progress is not None:
+            if initial_risk > 0 and r_mult > best_r_at_check + min_progress_r:
+                best_r_at_check = r_mult
+                last_progress_loc = loc
+            if loc - last_progress_loc >= max_bars_no_progress:
+                return _make_result(dt, close, profit, "time_exit")
 
     last_close = float(ohlc["close"].iloc[end_loc])
     last_profit = last_close - entry_price
@@ -441,12 +464,14 @@ def plot_trade_simulation(
         "stop_loss": "#e74c3c",
         "trailing_stop": "#e67e22",
         "distribution": "#9b59b6",
+        "time_exit": "#95a5a6",
         "open": "#3498db",
     }
     exit_markers = {
         "stop_loss": "X",
         "trailing_stop": "X",
         "distribution": "D",
+        "time_exit": "s",
         "open": "o",
     }
     reason = trade_result["exit_reason"]

@@ -12,11 +12,16 @@ import optuna
 
 from models.configs import ATRZigZagConfig
 
-DEFAULT_RISK_PARAMS: dict[str, float | int] = {
+DEFAULT_RISK_PARAMS: dict[str, float | int | str | None] = {
     "max_stop_loss_pct": 0.07,
     "breakeven_r_multiple": 2.0,
     "trailing_sma_period": 20,
     "trailing_volume_factor": 1.5,
+    "trailing_stop_method": "sma",
+    "trailing_atr_period": 14,
+    "trailing_atr_multiplier": 3.0,
+    "max_bars_without_progress": None,
+    "min_progress_r": 0.5,
 }
 
 
@@ -56,6 +61,17 @@ def sample_params(trial: optuna.Trial) -> dict[str, Any]:
     max_entry_distance_pct = trial.suggest_float(
         "max_entry_distance_pct", 0.02, 0.08, step=0.01,
     )
+    trailing_stop_method = trial.suggest_categorical(
+        "trailing_stop_method", ["sma", "atr"],
+    )
+    trailing_atr_period = trial.suggest_int("trailing_atr_period", 10, 21)
+    trailing_atr_multiplier = trial.suggest_float(
+        "trailing_atr_multiplier", 1.5, 4.0, step=0.25,
+    )
+    max_bars_without_progress = trial.suggest_categorical(
+        "max_bars_without_progress", [None, 15, 20, 30, 40],
+    )
+    min_progress_r = trial.suggest_float("min_progress_r", 0.25, 1.0, step=0.25)
 
     return {
         "swing_config": ATRZigZagConfig(
@@ -95,5 +111,15 @@ def sample_params(trial: optuna.Trial) -> dict[str, Any]:
         "grouping_params": {
             "max_gap_days": max_gap_days,
         },
-        "risk_params": dict(DEFAULT_RISK_PARAMS),
+        "risk_params": {
+            "max_stop_loss_pct": 0.07,
+            "breakeven_r_multiple": 2.0,
+            "trailing_sma_period": 20,
+            "trailing_volume_factor": 1.5,
+            "trailing_stop_method": trailing_stop_method,
+            "trailing_atr_period": trailing_atr_period,
+            "trailing_atr_multiplier": trailing_atr_multiplier,
+            "max_bars_without_progress": max_bars_without_progress,
+            "min_progress_r": min_progress_r,
+        },
     }

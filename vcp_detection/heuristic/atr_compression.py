@@ -61,7 +61,7 @@ logger = logging.getLogger(__name__)
 _VALID_METHODS = {"ratio", "trend", "ratio_normalized"}
 
 
-def _compute_atr(ohlc: pd.DataFrame, period: int = 14) -> pd.Series:
+def compute_atr(ohlc: pd.DataFrame, period: int = 14) -> pd.Series:
     """Calcula el ATR usando Wilder's smoothing (RMA) sobre la serie OHLC completa.
 
     True Range = max(high - low, |high - prev_close|, |low - prev_close|).
@@ -230,7 +230,7 @@ def verify_atr_compression(
             f"{start_date.date()}, but only {start_loc} available"
         )
 
-    atr_series = _compute_atr(ohlc, atr_period)
+    atr_series = compute_atr(ohlc, atr_period)
     atr_start = float(atr_series.loc[start_date])
     atr_end = float(atr_series.loc[end_date])
 

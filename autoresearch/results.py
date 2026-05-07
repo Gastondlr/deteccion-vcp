@@ -153,7 +153,14 @@ def reconstruct_pipeline_params(best_params: dict[str, Any]) -> dict[str, Any]:
         "grouping_params": {
             "max_gap_days": best_params["max_gap_days"],
         },
-        "risk_params": dict(DEFAULT_RISK_PARAMS),
+        "risk_params": {
+            **dict(DEFAULT_RISK_PARAMS),
+            "trailing_stop_method": best_params.get("trailing_stop_method", "sma"),
+            "trailing_atr_period": best_params.get("trailing_atr_period", 14),
+            "trailing_atr_multiplier": best_params.get("trailing_atr_multiplier", 3.0),
+            "max_bars_without_progress": best_params.get("max_bars_without_progress", None),
+            "min_progress_r": best_params.get("min_progress_r", 0.5),
+        },
     }
 
 
