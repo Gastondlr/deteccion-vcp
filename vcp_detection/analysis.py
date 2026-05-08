@@ -97,6 +97,7 @@ def simulate_trade(
     trailing_atr_multiplier = risk_params.get("trailing_atr_multiplier", 3.0)
     max_bars_no_progress = risk_params.get("max_bars_without_progress", None)
     min_progress_r = risk_params.get("min_progress_r", 0.5)
+    early_exit_days = risk_params.get("early_exit_days", None)
 
     entry_loc = ohlc.index.get_loc(entry_date)
     end_loc = min(entry_loc + max_hold_days, len(ohlc) - 1)
@@ -151,6 +152,10 @@ def simulate_trade(
                     stop = atr_trail
 
         stop_history.append((dt, stop))
+
+        if early_exit_days is not None and (loc - entry_loc) <= early_exit_days:
+            if close < entry_price:
+                return _make_result(dt, close, profit, "early_exit")
 
         if close <= stop:
             reason = "trailing_stop" if stop >= entry_price - 1e-10 else "stop_loss"
@@ -465,6 +470,7 @@ def plot_trade_simulation(
         "trailing_stop": "#e67e22",
         "distribution": "#9b59b6",
         "time_exit": "#95a5a6",
+        "early_exit": "#e74c3c",
         "open": "#3498db",
     }
     exit_markers = {
@@ -472,6 +478,7 @@ def plot_trade_simulation(
         "trailing_stop": "X",
         "distribution": "D",
         "time_exit": "s",
+        "early_exit": "X",
         "open": "o",
     }
     reason = trade_result["exit_reason"]

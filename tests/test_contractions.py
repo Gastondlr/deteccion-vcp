@@ -32,6 +32,28 @@ class TestComputeContractions:
             assert c.depth_abs > 0
             assert c.duration_bars > 0
 
+    def test_depth_atr_computed_with_ohlc(self, synthetic_vcp_ohlc: pd.DataFrame) -> None:
+        """depth_atr debe computarse cuando se provee ohlc."""
+        detector = ATRZigZagDetector(ATRZigZagConfig(atr_length=14, atr_mult=2.0))
+        swings = detector.detect(synthetic_vcp_ohlc)
+        contractions = compute_contractions(swings, synthetic_vcp_ohlc)
+
+        has_depth_atr = [c for c in contractions if c.depth_atr is not None]
+        assert len(has_depth_atr) > 0
+        for c in has_depth_atr:
+            assert c.depth_atr > 0
+
+    def test_depth_atr_none_without_ohlc(self) -> None:
+        """depth_atr debe ser None cuando no se provee ohlc."""
+        dates = pd.bdate_range("2023-01-01", periods=3)
+        swings = [
+            SwingPoint(date=dates[0], price=100.0, type=SwingType.HIGH, confirmed_at=dates[1]),
+            SwingPoint(date=dates[1], price=85.0, type=SwingType.LOW, confirmed_at=dates[2]),
+        ]
+        contractions = compute_contractions(swings)
+        assert len(contractions) == 1
+        assert contractions[0].depth_atr is None
+
     def test_depth_pct_is_correct(self) -> None:
         """depth_pct debe ser (high - low) / high."""
         dates = pd.bdate_range("2023-01-01", periods=3)

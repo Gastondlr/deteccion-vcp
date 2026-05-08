@@ -28,24 +28,12 @@ dentro de una estructura semanal coherente (ej. el rango semanal tambien se comp
 
 ## Paso 2 — Contracciones
 
-### 2. Profundidad relativa al ATR
+### ~~2. Profundidad relativa al ATR~~ (IMPLEMENTADO)
 
-**Que es:** Medir la profundidad de cada contraccion en multiplos de ATR en vez de
-porcentaje fijo. Una contraccion de 5% en un activo con ATR de 1% es muy distinta a
-una de 5% en un activo con ATR de 4%.
-
-**Que mejora:** Normaliza el filtro `max_depth_pct` entre activos de distinta volatilidad.
-Actualmente un threshold fijo (ej. 35%) puede ser demasiado permisivo para activos
-de baja volatilidad y demasiado restrictivo para los volatiles.
-
-**Implementacion:** En `compute_contractions`, calcular `depth_atr = depth / atr_at_swing_high`
-para cada contraccion. Agregar parametro `max_depth_atr` (ej. 3.0-5.0 ATRs) como
-alternativa o complemento a `max_depth_pct`.
-
-**Complejidad:** Baja. El ATR ya se computa; solo hay que dividir.
-
-**Impacto esperado:** Alto. Mejora la consistencia del filtro de calidad entre activos
-con volatilidades muy distintas (ej. AAPL vs MELI).
+Cada contraccion ahora tiene `depth_atr = depth_abs / ATR(14)` calculado en
+`compute_contractions`. El filtro `max_depth_atr` en `detect_decreasing_sequence`
+rechaza secuencias donde alguna contraccion excede N multiplos de ATR.
+Complementa `max_depth_pct` normalizando por volatilidad del activo.
 
 ---
 
@@ -241,7 +229,7 @@ Ordenadas por relacion impacto/esfuerzo:
 | # | Mejora | Impacto | Esfuerzo | Prioridad |
 |---|--------|---------|----------|-----------|
 | 9 | Confirmacion breakout multi-dia | Alto | Bajo | 1 |
-| 2 | Profundidad relativa al ATR | Alto | Bajo | 2 |
+| ~~2~~ | ~~Profundidad relativa al ATR~~ | ~~Alto~~ | ~~Bajo~~ | ~~DONE~~ |
 | 6 | Volumen per-contraccion | Alto | Bajo | 3 |
 | 4 | Penalizacion gaps temporales | Medio | Muy bajo | 4 |
 | 10 | Analisis de vela de breakout | Medio | Bajo | 5 |

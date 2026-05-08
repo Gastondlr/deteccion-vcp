@@ -41,10 +41,12 @@ from __future__ import annotations
 
 import logging
 
+import numpy as np
 import pandas as pd
 
 from models.enums import SwingType
 from models.types import Contraction, SwingPoint
+from vcp_detection.heuristic.atr_compression import compute_atr
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +55,7 @@ def compute_contractions(
     swings: list[SwingPoint],
     ohlc: pd.DataFrame | None = None,
     min_depth_pct: float = 0.0,
+    atr_period: int = 14,
 ) -> list[Contraction]:
     """Calcula las contracciones HIGH->LOW a partir de una lista de swings.
 
@@ -69,6 +72,9 @@ def compute_contractions(
         min_depth_pct: Profundidad minima (como fraccion, ej: 0.02 = 2%) para
             incluir una contraccion. Contracciones menores se descartan como
             ruido. Default 0.0 (aceptar todas).
+        atr_period: Periodo para calcular ATR (Wilder's smoothing). Se usa
+            para computar depth_atr = depth_abs / ATR en cada contraccion.
+            Solo se computa si ohlc es proporcionado. Default 14.
 
     Returns:
         Lista de Contraction ordenada cronologicamente por high_swing.date.
@@ -82,6 +88,10 @@ def compute_contractions(
         return []
 
     _validate_swing_sequence(swings)
+
+    atr_series: pd.Series | None = None
+    if ohlc is not None:
+        atr_series = compute_atr(ohlc, period=atr_period)
 
     contractions: list[Contraction] = []
     for i in range(len(swings) - 1):
@@ -120,6 +130,12 @@ def compute_contractions(
 
         confirmed_at = max(high_sw.confirmed_at, low_sw.confirmed_at)
 
+        depth_atr: float | None = None
+        if atr_series is not None and high_sw.date in atr_series.index:
+            atr_val = float(atr_series.loc[high_sw.date])
+            if not np.isnan(atr_val) and atr_val > 0:
+                depth_atr = depth_abs / atr_val
+
         contractions.append(
             Contraction(
                 high_swing=high_sw,
@@ -128,6 +144,7 @@ def compute_contractions(
                 depth_abs=depth_abs,
                 duration_bars=duration_bars,
                 confirmed_at=confirmed_at,
+                depth_atr=depth_atr,
             )
         )
 
@@ -159,6 +176,7 @@ def contractions_to_dataframe(contractions: list[Contraction]) -> pd.DataFrame:
                 "low_price",
                 "depth_pct",
                 "depth_abs",
+                "depth_atr",
                 "duration_bars",
                 "confirmed_at",
             ]
@@ -174,6 +192,7 @@ def contractions_to_dataframe(contractions: list[Contraction]) -> pd.DataFrame:
                 "low_price": c.low_swing.price,
                 "depth_pct": c.depth_pct,
                 "depth_abs": c.depth_abs,
+                "depth_atr": c.depth_atr,
                 "duration_bars": c.duration_bars,
                 "confirmed_at": c.confirmed_at,
             }

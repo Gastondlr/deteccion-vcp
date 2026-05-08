@@ -47,6 +47,7 @@ def sample_params(trial: optuna.Trial) -> dict[str, Any]:
     lookback_bars = trial.suggest_int("lookback_bars", 80, 140, step=10)
     tolerance = trial.suggest_float("tolerance", 0.05, 0.20, step=0.025)
     max_depth_pct = trial.suggest_float("max_depth_pct", 0.25, 0.45)
+    max_depth_atr = trial.suggest_float("max_depth_atr", 3.0, 7.0, step=0.5)
     min_total_reduction = trial.suggest_float("min_total_reduction", 0.65, 0.90)
     compression_threshold = trial.suggest_float("compression_threshold", 0.70, 0.95)
     vol_contraction_threshold = trial.suggest_float("vol_contraction_threshold", 0.75, 0.95)
@@ -86,6 +87,7 @@ def sample_params(trial: optuna.Trial) -> dict[str, Any]:
             "lookback_bars": lookback_bars,
             "tolerance": tolerance,
             "max_depth_pct": max_depth_pct,
+            "max_depth_atr": max_depth_atr,
             "min_total_reduction": min_total_reduction,
             "max_gap_between_contractions_days": None,
             "require_ascending_lows": require_ascending_lows,

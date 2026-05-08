@@ -86,6 +86,7 @@ def detect_decreasing_sequence(
     min_r_squared: float = 0.5,
     ohlc_index: pd.DatetimeIndex | None = None,
     max_depth_pct: float | None = None,
+    max_depth_atr: float | None = None,
     min_total_reduction: float | None = None,
     max_gap_between_contractions_days: int | None = None,
     require_ascending_lows: bool = True,
@@ -105,6 +106,9 @@ def detect_decreasing_sequence(
         min_r_squared: Solo para method="robust_trend". Default 0.5.
         ohlc_index: DatetimeIndex opcional para contar bars de trading.
         max_depth_pct: Profundidad maxima permitida por contraccion individual.
+        max_depth_atr: Profundidad maxima en multiplos de ATR por contraccion.
+            Complementa max_depth_pct normalizando por volatilidad del activo.
+            None para desactivar.
         min_total_reduction: Ratio maximo depths[-1]/depths[0].
         max_gap_between_contractions_days: Maximo de dias calendario permitidos
             entre el low de una contraccion y el high de la siguiente. Rechaza
@@ -148,7 +152,7 @@ def detect_decreasing_sequence(
         if not passes:
             continue
 
-        if not _passes_quality_filters(depths, max_depth_pct, min_total_reduction, metrics):
+        if not _passes_quality_filters(tail, depths, max_depth_pct, max_depth_atr, min_total_reduction, metrics):
             continue
 
         if not _passes_gap_filter(tail, max_gap_between_contractions_days, metrics):
@@ -180,6 +184,7 @@ def scan_for_sequences(
     min_r_squared: float = 0.5,
     ohlc_index: pd.DatetimeIndex | None = None,
     max_depth_pct: float | None = None,
+    max_depth_atr: float | None = None,
     min_total_reduction: float | None = None,
     max_gap_between_contractions_days: int | None = None,
     require_ascending_lows: bool = True,
@@ -198,6 +203,7 @@ def scan_for_sequences(
         min_r_squared: R^2 minimo para method="robust_trend".
         ohlc_index: DatetimeIndex opcional.
         max_depth_pct: Profundidad maxima permitida por contraccion individual.
+        max_depth_atr: Profundidad maxima en multiplos de ATR por contraccion.
         min_total_reduction: Ratio maximo depths[-1]/depths[0].
         max_gap_between_contractions_days: Maximo de dias calendario entre contracciones.
         require_ascending_lows: Exige lows ascendentes entre contracciones.
@@ -219,6 +225,7 @@ def scan_for_sequences(
             min_r_squared=min_r_squared,
             ohlc_index=ohlc_index,
             max_depth_pct=max_depth_pct,
+            max_depth_atr=max_depth_atr,
             min_total_reduction=min_total_reduction,
             max_gap_between_contractions_days=max_gap_between_contractions_days,
             require_ascending_lows=require_ascending_lows,
@@ -240,16 +247,20 @@ def scan_for_sequences(
 
 
 def _passes_quality_filters(
+    tail: list[Contraction],
     depths: list[float],
     max_depth_pct: float | None,
+    max_depth_atr: float | None,
     min_total_reduction: float | None,
     metrics: dict,
 ) -> bool:
     """Aplica filtros de calidad opcionales sobre una secuencia candidata.
 
     Args:
+        tail: Lista de contracciones en orden cronologico.
         depths: Lista de profundidades en orden cronologico.
-        max_depth_pct: Profundidad maxima por contraccion individual.
+        max_depth_pct: Profundidad maxima por contraccion individual (absoluto).
+        max_depth_atr: Profundidad maxima en multiplos de ATR por contraccion.
         min_total_reduction: Ratio maximo depths[-1]/depths[0].
         metrics: Dict de metricas del checker, se enriquece in-place.
 
@@ -262,6 +273,16 @@ def _passes_quality_filters(
         metrics["max_depth_threshold"] = max_depth_pct
         if worst > max_depth_pct:
             return False
+
+    if max_depth_atr is not None:
+        depths_atr = [c.depth_atr for c in tail if c.depth_atr is not None]
+        if depths_atr:
+            worst_atr = max(depths_atr)
+            metrics["max_depth_atr_observed"] = worst_atr
+            metrics["max_depth_atr_threshold"] = max_depth_atr
+            metrics["depths_atr"] = depths_atr
+            if worst_atr > max_depth_atr:
+                return False
 
     if min_total_reduction is not None and len(depths) >= 2 and depths[0] > 0:
         total_reduction = depths[-1] / depths[0]

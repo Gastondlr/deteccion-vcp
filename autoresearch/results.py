@@ -107,6 +107,7 @@ def reconstruct_pipeline_params(best_params: dict[str, Any]) -> dict[str, Any]:
         "max_contractions": best_params["max_contractions"],
         "lookback_bars": best_params["lookback_bars"],
         "max_depth_pct": best_params.get("max_depth_pct"),
+        "max_depth_atr": best_params.get("max_depth_atr"),
         "min_total_reduction": best_params.get("min_total_reduction"),
         "max_gap_between_contractions_days": None,
     }

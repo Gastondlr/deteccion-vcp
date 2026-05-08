@@ -63,6 +63,7 @@ class Contraction:
     depth_abs: float
     duration_bars: int
     confirmed_at: pd.Timestamp
+    depth_atr: float | None = None
 
 
 @dataclass(frozen=True)

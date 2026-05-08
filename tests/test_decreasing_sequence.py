@@ -15,6 +15,7 @@ def _make_contraction(
     low_date: str,
     high_price: float,
     low_price: float,
+    depth_atr: float | None = None,
 ) -> Contraction:
     """Helper para crear contracciones de test."""
     hd = pd.Timestamp(high_date)
@@ -26,6 +27,7 @@ def _make_contraction(
         depth_abs=high_price - low_price,
         duration_bars=10,
         confirmed_at=ld,
+        depth_atr=depth_atr,
     )
 
 
@@ -327,3 +329,81 @@ class TestDetectDecreasingSequence:
             lookback_bars=200,
         )
         assert result is None
+
+    def test_max_depth_atr_rejects_deep_atr_contraction(self) -> None:
+        """max_depth_atr debe rechazar contracciones con depth_atr excesivo."""
+        contractions = [
+            _make_contraction("2023-01-10", "2023-01-20", 100, 85, depth_atr=10.0),
+            _make_contraction("2023-02-10", "2023-02-20", 100, 90, depth_atr=6.0),
+            _make_contraction("2023-03-10", "2023-03-20", 100, 95, depth_atr=3.0),
+        ]
+        result = detect_decreasing_sequence(
+            contractions,
+            evaluation_date=pd.Timestamp("2023-04-01"),
+            method="tolerance",
+            tolerance=0.10,
+            min_contractions=2,
+            lookback_bars=200,
+            max_depth_atr=5.0,
+        )
+        if result is not None:
+            atr_depths = [c.depth_atr for c in result.contractions if c.depth_atr is not None]
+            assert all(d <= 5.0 for d in atr_depths)
+
+    def test_max_depth_atr_accepts_within_threshold(self) -> None:
+        """Contracciones dentro del limite ATR deben pasar."""
+        contractions = [
+            _make_contraction("2023-01-10", "2023-01-20", 100, 85, depth_atr=4.5),
+            _make_contraction("2023-02-10", "2023-02-20", 100, 90, depth_atr=3.0),
+            _make_contraction("2023-03-10", "2023-03-20", 100, 95, depth_atr=1.5),
+        ]
+        result = detect_decreasing_sequence(
+            contractions,
+            evaluation_date=pd.Timestamp("2023-04-01"),
+            method="tolerance",
+            tolerance=0.10,
+            min_contractions=2,
+            lookback_bars=200,
+            max_depth_atr=5.0,
+        )
+        assert result is not None
+        assert result.n_contractions == 3
+        assert result.method_metrics["max_depth_atr_observed"] == 4.5
+        assert result.method_metrics["max_depth_atr_threshold"] == 5.0
+
+    def test_max_depth_atr_none_disables_filter(self) -> None:
+        """Con max_depth_atr=None, cualquier depth_atr es aceptado."""
+        contractions = [
+            _make_contraction("2023-01-10", "2023-01-20", 100, 85, depth_atr=20.0),
+            _make_contraction("2023-02-10", "2023-02-20", 100, 90, depth_atr=10.0),
+            _make_contraction("2023-03-10", "2023-03-20", 100, 95, depth_atr=5.0),
+        ]
+        result = detect_decreasing_sequence(
+            contractions,
+            evaluation_date=pd.Timestamp("2023-04-01"),
+            method="tolerance",
+            tolerance=0.10,
+            min_contractions=2,
+            lookback_bars=200,
+            max_depth_atr=None,
+        )
+        assert result is not None
+        assert result.n_contractions == 3
+
+    def test_max_depth_atr_ignores_none_depth_atr(self) -> None:
+        """Contracciones sin depth_atr (None) no deben bloquear el filtro."""
+        contractions = [
+            _make_contraction("2023-01-10", "2023-01-20", 100, 85, depth_atr=None),
+            _make_contraction("2023-02-10", "2023-02-20", 100, 90, depth_atr=3.0),
+            _make_contraction("2023-03-10", "2023-03-20", 100, 95, depth_atr=1.5),
+        ]
+        result = detect_decreasing_sequence(
+            contractions,
+            evaluation_date=pd.Timestamp("2023-04-01"),
+            method="tolerance",
+            tolerance=0.10,
+            min_contractions=2,
+            lookback_bars=200,
+            max_depth_atr=5.0,
+        )
+        assert result is not None
