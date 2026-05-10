@@ -62,7 +62,7 @@ from models.types import (
     VCPSignal,
     VolumeContractionResult,
 )
-from vcp_detection.heuristic.atr_compression import verify_atr_compression
+from vcp_detection.heuristic.atr_compression import compute_atr, verify_atr_compression
 from vcp_detection.heuristic.contractions import compute_contractions
 from vcp_detection.heuristic.decreasing_sequence import detect_decreasing_sequence
 from vcp_detection.heuristic.swing_detector import SwingDetector
@@ -404,6 +404,9 @@ def run_full_vcp_pipeline(
     volume_contraction_params: dict | None = None,
     deduplicate: bool = False,
     dedup_cooldown_bars: int = 1,
+    precomputed_swings=None,
+    precomputed_contractions=None,
+    precomputed_atr: pd.Series | None = None,
 ) -> dict[pd.Timestamp, VCPSignal | None]:
     """Ejecuta el pipeline completo: swings -> contracciones -> secuencias
     decrecientes -> compresion ATR -> (volume contraction) -> senal de breakout.
@@ -419,6 +422,9 @@ def run_full_vcp_pipeline(
             verify_volume_contraction.
         deduplicate: Si True, emite solo la primera senal por patron.
         dedup_cooldown_bars: Barras minimas despues de invalidacion.
+        precomputed_swings: Swings precalculados. Si None, se calculan.
+        precomputed_contractions: Contracciones precalculadas. Si None, se calculan.
+        precomputed_atr: Serie ATR precalculada. Si None, se calcula.
 
     Returns:
         Dict ordenado {evaluation_date: VCPSignal | None}.
@@ -426,8 +432,12 @@ def run_full_vcp_pipeline(
     if evaluation_dates is None:
         evaluation_dates = ohlc.index
 
-    swings = swing_detector.detect(ohlc)
-    all_contractions = compute_contractions(swings, ohlc)
+    swings = precomputed_swings if precomputed_swings is not None else swing_detector.detect(ohlc)
+    all_contractions = precomputed_contractions if precomputed_contractions is not None else compute_contractions(swings, ohlc)
+
+    atr_period = compression_params.get("atr_period", 14)
+    if precomputed_atr is None:
+        precomputed_atr = compute_atr(ohlc, atr_period)
 
     active_pivot: float | None = None
     active_stop: float | None = None
@@ -455,7 +465,7 @@ def run_full_vcp_pipeline(
             continue
 
         try:
-            atr_result = verify_atr_compression(seq, ohlc, **compression_params)
+            atr_result = verify_atr_compression(seq, ohlc, **compression_params, precomputed_atr=precomputed_atr)
         except ValueError:
             results[dt] = None
             continue

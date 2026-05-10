@@ -188,6 +188,7 @@ def verify_atr_compression(
     atr_period: int = 14,
     ratio_threshold: float = 0.7,
     min_r_squared: float = 0.5,
+    precomputed_atr: pd.Series | None = None,
 ) -> ATRCompressionResult:
     """Verifica si el ATR se comprime a lo largo de una secuencia VCP candidata.
 
@@ -230,7 +231,7 @@ def verify_atr_compression(
             f"{start_date.date()}, but only {start_loc} available"
         )
 
-    atr_series = compute_atr(ohlc, atr_period)
+    atr_series = precomputed_atr if precomputed_atr is not None else compute_atr(ohlc, atr_period)
     atr_start = float(atr_series.loc[start_date])
     atr_end = float(atr_series.loc[end_date])
 
@@ -273,6 +274,7 @@ def verify_atr_compression_batch(
     atr_period: int = 14,
     ratio_threshold: float = 0.7,
     min_r_squared: float = 0.5,
+    precomputed_atr: pd.Series | None = None,
 ) -> dict[pd.Timestamp, ATRCompressionResult | None]:
     """Aplica verify_atr_compression a un batch de secuencias.
 
@@ -287,6 +289,8 @@ def verify_atr_compression_batch(
     Returns:
         Dict ordenado {evaluation_date: ATRCompressionResult | None}.
     """
+    if precomputed_atr is None:
+        precomputed_atr = compute_atr(ohlc, atr_period)
     results: dict[pd.Timestamp, ATRCompressionResult | None] = {}
     for dt, seq in sequences.items():
         if seq is None:
@@ -300,6 +304,7 @@ def verify_atr_compression_batch(
                 atr_period=atr_period,
                 ratio_threshold=ratio_threshold,
                 min_r_squared=min_r_squared,
+                precomputed_atr=precomputed_atr,
             )
         except ValueError:
             logger.warning(

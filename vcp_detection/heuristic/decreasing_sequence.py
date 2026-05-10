@@ -504,13 +504,13 @@ def _filter_contractions(
     confirmed = [c for c in contractions if c.confirmed_at <= evaluation_date]
 
     if ohlc_index is not None:
-        valid_dates = ohlc_index[ohlc_index <= evaluation_date]
-        if len(valid_dates) > lookback_bars:
-            cutoff = valid_dates[-lookback_bars]
-        elif len(valid_dates) > 0:
-            cutoff = valid_dates[0]
-        else:
+        pos = ohlc_index.searchsorted(evaluation_date, side="right")
+        if pos == 0:
             return []
+        if pos > lookback_bars:
+            cutoff = ohlc_index[pos - lookback_bars]
+        else:
+            cutoff = ohlc_index[0]
     else:
         cutoff = evaluation_date - pd.Timedelta(days=lookback_bars)
 

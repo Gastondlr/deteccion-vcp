@@ -14,6 +14,8 @@ sys.path.insert(0, str(project_root))
 
 from models.configs import ATRZigZagConfig
 from vcp_detection.heuristic import ATRZigZagDetector, run_full_vcp_pipeline
+from vcp_detection.heuristic.contractions import compute_contractions
+from vcp_detection.heuristic.atr_compression import compute_atr
 from vcp_detection.analysis import (
     group_signals_into_patterns,
     simulate_trade,
@@ -182,22 +184,37 @@ print("="*70)
 TARGET_RS = [None, 2.0, 3.0, 5.0]
 ATR_MULTS = [1.5, 2.0, 2.5]
 
+print("\n  Precalculando swings/contracciones/ATR para grilla de salida...")
+fx_detector = ATRZigZagDetector(FX_PARAMS["swing"])
+fx_atr_period = FX_PARAMS["compression"].get("atr_period", 14)
+cache_s6 = {}
+for data_label, ohlc in [("Diario", daily), ("Horario", hourly)]:
+    t0 = time.time()
+    swings = fx_detector.detect(ohlc)
+    contractions = compute_contractions(swings, ohlc)
+    atr = compute_atr(ohlc, fx_atr_period)
+    cache_s6[data_label] = (ohlc, swings, contractions, atr)
+    print(f"    {data_label}: {time.time()-t0:.1f}s")
+
 grid_results = []
 for data_label, ohlc in [("Diario", daily), ("Horario", hourly)]:
     print(f"\n  Procesando {data_label}...")
+    _, swings, contractions, atr = cache_s6[data_label]
     for target_r in TARGET_RS:
         for atr_m in ATR_MULTS:
             params = {
                 **FX_PARAMS,
                 "risk": {**FX_PARAMS["risk"], "target_r_multiple": target_r, "trailing_atr_multiplier": atr_m},
             }
-            detector = ATRZigZagDetector(params["swing"])
             res = run_full_vcp_pipeline(
-                ohlc=ohlc, swing_detector=detector,
+                ohlc=ohlc, swing_detector=fx_detector,
                 sequence_params=params["sequence"],
                 compression_params=params["compression"],
                 breakout_params=params["breakout"],
                 volume_contraction_params=None,
+                precomputed_swings=swings,
+                precomputed_contractions=contractions,
+                precomputed_atr=atr,
             )
             signals = {dt: s for dt, s in res.items() if s is not None}
             patterns = group_signals_into_patterns(signals, risk_params=params["risk"])
@@ -244,6 +261,7 @@ REDUCTIONS = [0.50, 0.60, 0.70]
 det_results = []
 for data_label, ohlc in [("Diario", daily), ("Horario", hourly)]:
     t0 = time.time()
+    _, swings, contractions, atr = cache_s6[data_label]
     print(f"\n  Procesando {data_label} ({len(ohlc):,} barras)...")
     for depth_pct in DEPTH_PCTS:
         for depth_atr in DEPTH_ATRS:
@@ -257,13 +275,15 @@ for data_label, ohlc in [("Diario", daily), ("Horario", hourly)]:
                         "min_total_reduction": reduction,
                     },
                 }
-                detector = ATRZigZagDetector(params["swing"])
                 res = run_full_vcp_pipeline(
-                    ohlc=ohlc, swing_detector=detector,
+                    ohlc=ohlc, swing_detector=fx_detector,
                     sequence_params=params["sequence"],
                     compression_params=params["compression"],
                     breakout_params=params["breakout"],
                     volume_contraction_params=None,
+                    precomputed_swings=swings,
+                    precomputed_contractions=contractions,
+                    precomputed_atr=atr,
                 )
                 signals = {dt: s for dt, s in res.items() if s is not None}
                 patterns = group_signals_into_patterns(signals, risk_params=params["risk"])
