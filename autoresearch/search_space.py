@@ -59,9 +59,6 @@ def sample_params(trial: optuna.Trial) -> dict[str, Any]:
     ascending_lows_tolerance = trial.suggest_float(
         "ascending_lows_tolerance", 0.0, 0.05, step=0.01,
     )
-    max_entry_distance_pct = trial.suggest_float(
-        "max_entry_distance_pct", 0.02, 0.08, step=0.01,
-    )
     trailing_stop_method = trial.suggest_categorical(
         "trailing_stop_method", ["sma", "atr"],
     )
@@ -108,7 +105,6 @@ def sample_params(trial: optuna.Trial) -> dict[str, Any]:
             "volume_ratio_threshold": volume_ratio_threshold,
             "volume_lookback_days": 50,
             "require_volume_confirmation": True,
-            "max_entry_distance_pct": max_entry_distance_pct,
         },
         "grouping_params": {
             "max_gap_days": max_gap_days,

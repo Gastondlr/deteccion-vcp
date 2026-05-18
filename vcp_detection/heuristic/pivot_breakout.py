@@ -180,7 +180,6 @@ def detect_breakout_signal(
     volume_lookback_days: int = 50,
     require_volume_confirmation: bool = True,
     volume_contraction_result: VolumeContractionResult | None = None,
-    max_entry_distance_pct: float | None = None,
 ) -> VCPSignal | None:
     """Detecta si hay senal de compra VCP en evaluation_date.
 
@@ -196,11 +195,6 @@ def detect_breakout_signal(
         require_volume_confirmation: Si False, bypasea el filtro de volumen.
         volume_contraction_result: Resultado de verify_volume_contraction si
             se evaluo previamente.
-        max_entry_distance_pct: Distancia maxima permitida entre el precio de
-            entrada y el pivote, expresada como fraccion (ej: 0.03 = 3%).
-            Rechaza breakouts extendidos donde el precio ya se alejo demasiado
-            del pivote, resultando en un risk/reward desfavorable.
-            None para desactivar (default).
 
     Returns:
         VCPSignal si el trigger de precio (y opcionalmente de volumen) se cumple,
@@ -236,17 +230,6 @@ def detect_breakout_signal(
     close_today = float(ohlc.loc[evaluation_date, "close"])
     if close_today <= pivot_info.price:
         return None
-
-    if max_entry_distance_pct is not None:
-        entry_distance = (close_today - pivot_info.price) / pivot_info.price
-        if entry_distance > max_entry_distance_pct:
-            logger.debug(
-                "Entry distance %.2f%% exceeds max %.2f%% at %s",
-                entry_distance * 100,
-                max_entry_distance_pct * 100,
-                evaluation_date.date(),
-            )
-            return None
 
     volume_confirmation = _evaluate_volume(
         ohlc=ohlc,
@@ -345,7 +328,6 @@ def detect_breakout_signals_batch(
     volume_percentile: int = 80,
     volume_lookback_days: int = 50,
     require_volume_confirmation: bool = True,
-    max_entry_distance_pct: float | None = None,
 ) -> dict[pd.Timestamp, VCPSignal | None]:
     """Aplica detect_breakout_signal a un batch de candidatos.
 
@@ -357,7 +339,6 @@ def detect_breakout_signals_batch(
         volume_percentile: Percentil para percentile.
         volume_lookback_days: Dias de lookback.
         require_volume_confirmation: Si False, bypasea volumen.
-        max_entry_distance_pct: Distancia maxima del entry al pivote.
 
     Returns:
         Dict ordenado {evaluation_date: VCPSignal | None}.
@@ -379,7 +360,6 @@ def detect_breakout_signals_batch(
                 volume_percentile=volume_percentile,
                 volume_lookback_days=volume_lookback_days,
                 require_volume_confirmation=require_volume_confirmation,
-                max_entry_distance_pct=max_entry_distance_pct,
             )
         except ValueError:
             logger.warning("Skipping breakout detection for %s: invalid data", dt.date())
@@ -407,6 +387,7 @@ def run_full_vcp_pipeline(
     precomputed_swings=None,
     precomputed_contractions=None,
     precomputed_atr: pd.Series | None = None,
+    early_entry: bool = False,
 ) -> dict[pd.Timestamp, VCPSignal | None]:
     """Ejecuta el pipeline completo: swings -> contracciones -> secuencias
     decrecientes -> compresion ATR -> (volume contraction) -> senal de breakout.
@@ -425,6 +406,9 @@ def run_full_vcp_pipeline(
         precomputed_swings: Swings precalculados. Si None, se calculan.
         precomputed_contractions: Contracciones precalculadas. Si None, se calculan.
         precomputed_atr: Serie ATR precalculada. Si None, se calcula.
+        early_entry: Si True, usa contracciones visibles desde la confirmacion
+            del HIGH (sin esperar al LOW), permitiendo detectar el patron antes
+            del breakout y entrar exactamente cuando el precio rompe el pivot.
 
     Returns:
         Dict ordenado {evaluation_date: VCPSignal | None}.
