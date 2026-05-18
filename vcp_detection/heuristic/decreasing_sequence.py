@@ -120,7 +120,6 @@ def detect_decreasing_sequence(
         ascending_lows_tolerance: Margen permitido para ascending lows. Con 0.0
             (default) se exige low[i+1] >= low[i]. Con ej. 0.02, se permite
             low[i+1] >= low[i] * (1 - 0.02).
-
     Returns:
         DecreasingSequence si encontro secuencia valida, None en caso contrario.
 

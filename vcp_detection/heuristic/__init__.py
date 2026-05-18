@@ -18,6 +18,7 @@ from vcp_detection.heuristic.atr_compression import (
 from vcp_detection.heuristic.contractions import (
     compute_contractions,
     contractions_to_dataframe,
+    make_early_contractions,
 )
 from vcp_detection.heuristic.decreasing_sequence import (
     detect_decreasing_sequence,
@@ -44,6 +45,7 @@ __all__ = [
     "SwingDetector",
     "compute_contractions",
     "contractions_to_dataframe",
+    "make_early_contractions",
     "detect_breakout_signal",
     "detect_breakout_signals_batch",
     "detect_decreasing_sequence",

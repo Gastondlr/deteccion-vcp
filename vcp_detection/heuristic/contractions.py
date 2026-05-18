@@ -157,6 +157,29 @@ def compute_contractions(
     return contractions
 
 
+def make_early_contractions(contractions: list[Contraction]) -> list[Contraction]:
+    """Crea contracciones visibles desde que el HIGH se confirma (sin esperar al LOW).
+
+    En el modo normal, confirmed_at = max(high.confirmed_at, low.confirmed_at).
+    Aquí usamos confirmed_at = high.confirmed_at, permitiendo que la contracción
+    sea "visible" antes — el LOW ya ocurrió en esa fecha (D_L <= T_H) pero no
+    estaba confirmado aún. Esto permite detectar el patrón VCP antes del breakout
+    y entrar exactamente cuando el precio rompe el pivot.
+    """
+    return [
+        Contraction(
+            high_swing=c.high_swing,
+            low_swing=c.low_swing,
+            depth_pct=c.depth_pct,
+            depth_abs=c.depth_abs,
+            duration_bars=c.duration_bars,
+            confirmed_at=c.high_swing.confirmed_at,
+            depth_atr=c.depth_atr,
+        )
+        for c in contractions
+    ]
+
+
 def contractions_to_dataframe(contractions: list[Contraction]) -> pd.DataFrame:
     """Convierte una lista de Contraction a DataFrame para analisis tabular.
 
