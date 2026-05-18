@@ -12,6 +12,53 @@ from models.types import VCPSignal
 from vcp_detection.heuristic.atr_compression import compute_atr
 
 
+def evaluate_signals_to_trades(
+    signals: dict[pd.Timestamp, VCPSignal],
+    ohlc: pd.DataFrame,
+    risk_params: dict,
+    grouping: str = "gap",
+    max_gap_days: int = 30,
+) -> list[tuple[dict, dict]]:
+    """Convierte señales en trades usando el método de agrupación elegido.
+
+    Args:
+        signals: Dict {date: VCPSignal} con las señales detectadas.
+        ohlc: DataFrame OHLC para la simulación de trades.
+        risk_params: Parámetros de riesgo/salida.
+        grouping: "gap" (agrupa por max_gap_days) o "sequential" (un trade a la vez).
+        max_gap_days: Días máximos entre señales para agruparlas (solo para grouping="gap").
+
+    Returns:
+        Lista de tuplas (pattern_dict, trade_dict).
+    """
+    if not signals:
+        return []
+
+    if grouping == "sequential":
+        sorted_dates = sorted(signals.keys())
+        results = []
+        i = 0
+        while i < len(sorted_dates):
+            sig_date = sorted_dates[i]
+            pat = group_signals_into_patterns(
+                {sig_date: signals[sig_date]}, risk_params=risk_params, max_gap_days=0,
+            )
+            if not pat:
+                i += 1
+                continue
+            trade = simulate_trade(ohlc, pat[0], risk_params)
+            results.append((pat[0], trade))
+            exit_date = trade["exit_date"]
+            while i < len(sorted_dates) and sorted_dates[i] <= exit_date:
+                i += 1
+        return results
+
+    patterns = group_signals_into_patterns(
+        signals, risk_params=risk_params, max_gap_days=max_gap_days,
+    )
+    return [(p, simulate_trade(ohlc, p, risk_params)) for p in patterns]
+
+
 def group_signals_into_patterns(
     signals: dict[pd.Timestamp, VCPSignal],
     risk_params: dict,
