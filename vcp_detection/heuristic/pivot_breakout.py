@@ -387,7 +387,6 @@ def run_full_vcp_pipeline(
     precomputed_swings=None,
     precomputed_contractions=None,
     precomputed_atr: pd.Series | None = None,
-    early_entry: bool = False,
 ) -> dict[pd.Timestamp, VCPSignal | None]:
     """Ejecuta el pipeline completo: swings -> contracciones -> secuencias
     decrecientes -> compresion ATR -> (volume contraction) -> senal de breakout.
@@ -406,9 +405,6 @@ def run_full_vcp_pipeline(
         precomputed_swings: Swings precalculados. Si None, se calculan.
         precomputed_contractions: Contracciones precalculadas. Si None, se calculan.
         precomputed_atr: Serie ATR precalculada. Si None, se calcula.
-        early_entry: Si True, usa contracciones visibles desde la confirmacion
-            del HIGH (sin esperar al LOW), permitiendo detectar el patron antes
-            del breakout y entrar exactamente cuando el precio rompe el pivot.
 
     Returns:
         Dict ordenado {evaluation_date: VCPSignal | None}.
