@@ -288,42 +288,62 @@ VCPSignal(
 
 ```
 deteccion-vcp/
-├── README.md                   # Este archivo
-├── pyproject.toml              # Dependencias y configuracion
+├── README.md
+├── pyproject.toml
 │
 ├── models/                     # Dataclasses y tipos
-│   ├── __init__.py
 │   ├── enums.py                # SwingType (HIGH, LOW)
-│   ├── configs.py              # ATRZigZagConfig, ScipyPeaksConfig
+│   ├── configs.py              # ATRZigZagConfig
 │   └── types.py                # SwingPoint, Contraction, DecreasingSequence,
 │                               # ATRCompressionResult, VolumeContractionResult,
 │                               # PivotInfo, VCPSignal
 │
-├── vcp_detection/              # Pipeline de deteccion
-│   ├── __init__.py
+├── vcp_detection/              # Pipeline de deteccion + simulacion de trades
+│   ├── analysis.py             # evaluate_signals_to_trades, simulate_trade
 │   └── heuristic/
-│       ├── __init__.py         # Re-exports de todas las funciones publicas
-│       ├── swing_detector.py   # Paso 1: ATRZigZagDetector, ScipyPeaksDetector
+│       ├── swing_detector.py   # Paso 1: ATRZigZagDetector
 │       ├── contractions.py     # Paso 2: compute_contractions
 │       ├── decreasing_sequence.py  # Paso 3: detect_decreasing_sequence
 │       ├── atr_compression.py  # Paso 4: verify_atr_compression
 │       ├── volume_contraction.py   # Paso 5: verify_volume_contraction
 │       └── pivot_breakout.py   # Paso 6: detect_breakout_signal, run_full_vcp_pipeline
 │
+├── stages/
+│   └── trend_template.py       # Filtro Minervini Stage 2
+│
+├── autoresearch/               # Optimizacion con Optuna
+│   ├── search_space.py         # Espacio de busqueda (~20 parametros)
+│   ├── objective.py            # Funcion objetivo + creacion de study
+│   ├── backtest.py             # Motor de backtesting
+│   ├── caching.py              # SwingCache
+│   ├── data_loader.py          # Carga de universo de tickers
+│   ├── mlflow_integration.py   # Logging a MLflow
+│   └── results.py              # Analisis de resultados (fANOVA, dataframes)
+│
+├── experiments/                # Cada experimento con dev.md (spec) + insights.md (resultados)
+│   ├── fx_exploration/         # Experimentos exploratorios FX (daily + hourly)
+│   ├── fx_sequential/          # Experimento definitivo FX (sequential, 5 pares)
+│   ├── stocks_exploration/     # Experimentos exploratorios stocks (TT, vol, stability)
+│   ├── stocks_sequential/      # Experimento definitivo stocks (sequential, 8 tickers)
+│   └── autoresearch_phase1/    # Optimizacion Optuna (18 tickers, 50 trials)
+│
+├── docs/                       # Documentacion de arquitectura
+│   ├── architecture-overview.md
+│   ├── architecture-detection.md
+│   ├── architecture-simulation.md
+│   ├── architecture-optimization.md
+│   ├── guide.md
+│   └── mejoras_pendientes.md
+│
 ├── notebooks/
-│   └── 06_vcp_detection_demo.ipynb  # Demo completo sobre NVDA
+│   └── demo_vcp_detection.ipynb
 │
-├── data/
-│   └── csv/                    # Colocar CSVs OHLCV aqui
+├── data/                       # CSVs OHLCV (csv/ para stocks, monedas/ para FX)
 │
-└── tests/
-    ├── conftest.py             # Fixtures: datos sinteticos con VCP conocido
-    ├── test_swing_detector.py  # Tests Paso 1
-    ├── test_contractions.py    # Tests Paso 2
-    ├── test_decreasing_sequence.py  # Tests Paso 3
-    ├── test_atr_compression.py     # Tests Paso 4
-    └── test_pipeline.py        # Tests de integracion (Pasos 1-6)
+└── tests/                      # 105 tests (pytest tests/ -v)
 ```
+
+Para documentacion detallada ver `docs/`. Para resultados de cada experimento ver `experiments/{nombre}/insights.md`.
 
 ---
 
