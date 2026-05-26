@@ -11,10 +11,13 @@ Phase 2: same 240 exit configs as fx_sequential.
 Usage:
     python run_eurusd_detection.py
 """
+import functools
 import sys
 import tempfile
 import time
 from pathlib import Path
+
+print = functools.partial(print, flush=True)
 
 import matplotlib
 matplotlib.use("Agg")
@@ -130,9 +133,10 @@ def detect_signals(ohlc, seq_params, cache_entry, compression_params):
     return {dt: s for dt, s in res.items() if s is not None}
 
 
-def evaluate_signals_seq(ohlc, signals, risk):
+def evaluate_signals_seq(ohlc, signals, risk, precomputed_atr=None):
     results = evaluate_signals_to_trades(
         signals, ohlc, risk, grouping="sequential",
+        precomputed_atr=precomputed_atr,
     )
     n = len(results)
     trades_list = [t for _, t in results]
@@ -241,6 +245,11 @@ if __name__ == "__main__":
         n_swings = len(cache["swings"])
         n_contr = len(cache["contractions"])
 
+        configs_per_mult = (len(DEPTH_ATRS) * len(REDUCTIONS) * len(LOOKBACK_BARS)
+                            * len(COMPRESSION_THRESHOLDS) * len(ASCENDING_LOWS) * len(TOLERANCES))
+        mult_done = 0
+        last_pct = -1
+
         for depth_atr in DEPTH_ATRS:
             for reduction in REDUCTIONS:
                 for lookback in LOOKBACK_BARS:
@@ -251,7 +260,8 @@ if __name__ == "__main__":
                                 comp_params = {"method": "ratio", "atr_period": 14,
                                                "ratio_threshold": comp_thresh}
                                 signals = detect_signals(train, seq, cache, comp_params)
-                                ev = evaluate_signals_seq(train, signals, fixed_risk)
+                                ev = evaluate_signals_seq(train, signals, fixed_risk,
+                                                          precomputed_atr=cache["atr"])
                                 all_det_results.append({
                                     "atr_mult": atr_mult, "depth_atr": depth_atr,
                                     "reduction": reduction, "lookback_bars": lookback,
@@ -263,6 +273,17 @@ if __name__ == "__main__":
                                     **{k: ev[k] for k in ["trades", "wins", "WR", "CR", "avg_R"]},
                                 })
                                 configs_done += 1
+                                mult_done += 1
+                                pct = mult_done * 100 // configs_per_mult
+                                if pct >= last_pct + 10:
+                                    elapsed_mult = time.time() - t0
+                                    eta_mult = elapsed_mult / mult_done * (configs_per_mult - mult_done) if mult_done > 0 else 0
+                                    elapsed_total = time.time() - t_total
+                                    eta_total = elapsed_total / configs_done * (n_det - configs_done) if configs_done > 0 else 0
+                                    print(f"    atr_mult={atr_mult:.2f}: {pct}% ({mult_done}/{configs_per_mult}) "
+                                          f"| total {configs_done:,}/{n_det:,} "
+                                          f"| ETA mult {eta_mult:.0f}s | ETA total {eta_total:.0f}s")
+                                    last_pct = pct
 
         elapsed = time.time() - t0
         best_in_mult = max((r for r in all_det_results if r["atr_mult"] == atr_mult),
@@ -372,7 +393,8 @@ if __name__ == "__main__":
                     risk = {**RISK_BASE, "trailing_atr_multiplier": trail,
                             "target_r_multiple": target, "early_exit_days": early,
                             "breakeven_r_multiple": be_r}
-                    ev = evaluate_signals_seq(train, signals_train, risk)
+                    ev = evaluate_signals_seq(train, signals_train, risk,
+                                              precomputed_atr=best_cache["atr"])
                     exit_results.append({
                         "trailing_atr_multiplier": trail, "target_r_multiple": target,
                         "early_exit_days": early, "breakeven_r_multiple": be_r,

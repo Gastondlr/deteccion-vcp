@@ -18,6 +18,7 @@ def evaluate_signals_to_trades(
     risk_params: dict,
     grouping: str = "gap",
     max_gap_days: int = 30,
+    precomputed_atr: pd.Series | None = None,
 ) -> list[tuple[dict, dict]]:
     """Convierte señales en trades usando el método de agrupación elegido.
 
@@ -27,12 +28,18 @@ def evaluate_signals_to_trades(
         risk_params: Parámetros de riesgo/salida.
         grouping: "gap" (agrupa por max_gap_days) o "sequential" (un trade a la vez).
         max_gap_days: Días máximos entre señales para agruparlas (solo para grouping="gap").
+        precomputed_atr: ATR series precalculada para evitar recalcular en cada trade.
 
     Returns:
         Lista de tuplas (pattern_dict, trade_dict).
     """
     if not signals:
         return []
+
+    trailing_stop_method = risk_params.get("trailing_stop_method", "sma")
+    if trailing_stop_method == "atr" and precomputed_atr is None:
+        trailing_atr_period = risk_params.get("trailing_atr_period", 14)
+        precomputed_atr = compute_atr(ohlc, trailing_atr_period)
 
     if grouping == "sequential":
         sorted_dates = sorted(signals.keys())
@@ -46,7 +53,7 @@ def evaluate_signals_to_trades(
             if not pat:
                 i += 1
                 continue
-            trade = simulate_trade(ohlc, pat[0], risk_params)
+            trade = simulate_trade(ohlc, pat[0], risk_params, precomputed_atr=precomputed_atr)
             results.append((pat[0], trade))
             exit_date = trade["exit_date"]
             while i < len(sorted_dates) and sorted_dates[i] <= exit_date:
@@ -56,7 +63,7 @@ def evaluate_signals_to_trades(
     patterns = group_signals_into_patterns(
         signals, risk_params=risk_params, max_gap_days=max_gap_days,
     )
-    return [(p, simulate_trade(ohlc, p, risk_params)) for p in patterns]
+    return [(p, simulate_trade(ohlc, p, risk_params, precomputed_atr=precomputed_atr)) for p in patterns]
 
 
 def group_signals_into_patterns(
@@ -130,6 +137,7 @@ def simulate_trade(
     pattern: dict,
     risk_params: dict,
     max_hold_days: int = 252,
+    precomputed_atr: pd.Series | None = None,
 ) -> dict:
     entry_date = pattern["first_signal_date"]
     entry_price = pattern["entry_price"]
@@ -152,7 +160,7 @@ def simulate_trade(
 
     atr_series = None
     if trailing_stop_method == "atr":
-        atr_series = compute_atr(ohlc, trailing_atr_period)
+        atr_series = precomputed_atr if precomputed_atr is not None else compute_atr(ohlc, trailing_atr_period)
 
     stop = initial_stop
     stop_history = [(entry_date, stop)]
