@@ -10,3 +10,4 @@ data/csv/*.csv
 data/monedas/*.csv
 data/monedas_hora/*.csv
 mlruns/
+.claude/
