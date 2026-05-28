@@ -180,6 +180,8 @@ def detect_breakout_signal(
     volume_lookback_days: int = 50,
     require_volume_confirmation: bool = True,
     volume_contraction_result: VolumeContractionResult | None = None,
+    volume_confirmation_window: int = 1,
+    volume_lookback_from_pattern: bool = False,
 ) -> VCPSignal | None:
     """Detecta si hay senal de compra VCP en evaluation_date.
 
@@ -192,9 +194,18 @@ def detect_breakout_signal(
         volume_ratio_threshold: Default 1.5 (Minervini clasico).
         volume_percentile: Default 80.
         volume_lookback_days: Dias previos para baseline de volumen.
+            Se ignora si volume_lookback_from_pattern=True.
         require_volume_confirmation: Si False, bypasea el filtro de volumen.
         volume_contraction_result: Resultado de verify_volume_contraction si
             se evaluo previamente.
+        volume_confirmation_window: Dias (incluyendo hoy) donde buscar al
+            menos un dia con volumen alto tras el cruce del pivot. Con 1
+            (default) exige volumen alto el mismo dia del breakout. Con 3,
+            acepta si hubo volumen alto en los ultimos 3 dias.
+        volume_lookback_from_pattern: Si True, usa la duracion del patron
+            VCP (primer high a ultimo low) como periodo de lookback para
+            calcular el volumen promedio de referencia, en vez del fijo
+            volume_lookback_days.
 
     Returns:
         VCPSignal si el trigger de precio (y opcionalmente de volumen) se cumple,
@@ -231,14 +242,24 @@ def detect_breakout_signal(
     if close_today <= pivot_info.price:
         return None
 
+    effective_lookback = volume_lookback_days
+    if volume_lookback_from_pattern:
+        pattern_start = sequence.contractions[0].high_swing.date
+        pattern_end = sequence.contractions[-1].low_swing.date
+        if pattern_start in ohlc.index and pattern_end in ohlc.index:
+            start_loc = ohlc.index.get_loc(pattern_start)
+            end_loc = ohlc.index.get_loc(pattern_end)
+            effective_lookback = max(end_loc - start_loc, 10)
+
     volume_confirmation = _evaluate_volume(
         ohlc=ohlc,
         evaluation_date=evaluation_date,
         volume_method=volume_method,
         volume_ratio_threshold=volume_ratio_threshold,
         volume_percentile=volume_percentile,
-        volume_lookback_days=volume_lookback_days,
+        volume_lookback_days=effective_lookback,
         require_volume_confirmation=require_volume_confirmation,
+        volume_confirmation_window=volume_confirmation_window,
     )
 
     if volume_confirmation["applied"] and not volume_confirmation["passed"]:
@@ -282,8 +303,14 @@ def _evaluate_volume(
     volume_percentile: int,
     volume_lookback_days: int,
     require_volume_confirmation: bool,
+    volume_confirmation_window: int = 1,
 ) -> dict:
     """Evalua la confirmacion de volumen para un breakout.
+
+    Soporta una ventana de confirmacion: en vez de exigir volumen alto
+    solo en el dia exacto del breakout, busca si hubo volumen alto en
+    alguno de los ultimos ``volume_confirmation_window`` dias (incluyendo
+    hoy). Con window=1 (default) se comporta igual que antes.
 
     Args:
         ohlc: DataFrame OHLC.
@@ -291,8 +318,10 @@ def _evaluate_volume(
         volume_method: "ratio" o "percentile".
         volume_ratio_threshold: Umbral para method="ratio".
         volume_percentile: Percentil para method="percentile".
-        volume_lookback_days: Dias de lookback.
+        volume_lookback_days: Dias de lookback para calcular baseline.
         require_volume_confirmation: Si False, bypasea completamente.
+        volume_confirmation_window: Dias hacia atras (incluyendo hoy)
+            donde buscar al menos un dia con volumen alto. Default 1.
 
     Returns:
         Dict con info del filtro de volumen aplicado.
@@ -307,14 +336,28 @@ def _evaluate_volume(
     eval_loc = ohlc.index.get_loc(evaluation_date)
     lookback_start = max(0, eval_loc - volume_lookback_days)
     volume_recent = ohlc["volume"].iloc[lookback_start:eval_loc]
-    volume_today = float(ohlc.loc[evaluation_date, "volume"])
 
-    if volume_method == "ratio":
-        _, metrics = _check_volume_ratio(volume_today, volume_recent, volume_ratio_threshold)
-    else:
-        _, metrics = _check_volume_percentile(volume_today, volume_recent, volume_percentile)
+    window = max(1, volume_confirmation_window)
+    window_start = max(0, eval_loc - window + 1)
+    window_vols = ohlc["volume"].iloc[window_start:eval_loc + 1]
 
-    return metrics
+    best_metrics = None
+    for vol_date, vol_value in window_vols.items():
+        vol_value = float(vol_value)
+        if volume_method == "ratio":
+            _, metrics = _check_volume_ratio(vol_value, volume_recent, volume_ratio_threshold)
+        else:
+            _, metrics = _check_volume_percentile(vol_value, volume_recent, volume_percentile)
+
+        metrics["confirmation_window"] = window
+        metrics["confirmed_on"] = vol_date
+
+        if metrics["passed"]:
+            return metrics
+        if best_metrics is None or vol_value > best_metrics.get("volume_today", 0):
+            best_metrics = metrics
+
+    return best_metrics
 
 
 def detect_breakout_signals_batch(

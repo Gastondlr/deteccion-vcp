@@ -11,3 +11,4 @@ data/monedas/*.csv
 data/monedas_hora/*.csv
 mlruns/
 .claude/
+experiments/*/results/*.csv
