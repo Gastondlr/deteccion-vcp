@@ -1,0 +1,364 @@
+Deep Per-Ticker VCP Optimization v2
+  Tickers: AMZN
+  Train cutoff: 2020-01-01
+  Top N: 10
+  Min trades: 3
+
+######################################################################
+  AMZN — Deep Per-Ticker Optimization v2
+######################################################################
+  Pipeline runs:  17,496
+  Detection rows: 244,944 (x7 vol x2 TT)
+  Evaluations:    734,832 (x3 exit profiles)
+  Exit grid:      720 configs
+
+Cargando AMZN...
+  Total: 2,832 barras (2015-01-02 a 2026-04-08)
+  TRAIN: 1,258 barras (2015-01-02 a 2019-12-31)
+  TEST:  1,574 barras (2020-01-02 a 2026-04-08)
+
+Precomputando trend template...
+  471/1258 dias en Stage 2 (0.01s)
+
+Precomputando caches de swings (6 combos)...
+  atr=2.0, close_only=False: 136 sw, 67 contr
+  atr=2.0, close_only=True: 87 sw, 43 contr
+  atr=3.0, close_only=False: 76 sw, 37 contr
+  atr=3.0, close_only=True: 43 sw, 21 contr
+  atr=4.0, close_only=False: 39 sw, 19 contr
+  atr=4.0, close_only=True: 21 sw, 10 contr
+  Caches en 0.09s
+
+======================================================================
+  FASE 1: DETECCION — AMZN TRAIN
+  17,496 pipeline runs -> 244,944 rows (734,832 evals)
+======================================================================
+  4% (700/17,496) | 140s | 5.0 pipe/s | ETA 3371s (56.2m)
+  9% (1,575/17,496) | 305s | 5.2 pipe/s | ETA 3088s (51.5m)
+  14% (2,450/17,496) | 445s | 5.5 pipe/s | ETA 2736s (45.6m)
+  19% (3,325/17,496) | 614s | 5.4 pipe/s | ETA 2618s (43.6m)
+  24% (4,200/17,496) | 801s | 5.2 pipe/s | ETA 2535s (42.3m)
+  29% (5,074/17,496) | 951s | 5.3 pipe/s | ETA 2329s (38.8m)
+  34% (5,949/17,496) | 1159s | 5.1 pipe/s | ETA 2250s (37.5m)
+  39% (6,824/17,496) | 1397s | 4.9 pipe/s | ETA 2185s (36.4m)
+  44% (7,699/17,496) | 1457s | 5.3 pipe/s | ETA 1854s (30.9m)
+  49% (8,574/17,496) | 1575s | 5.4 pipe/s | ETA 1639s (27.3m)
+  54% (9,448/17,496) | 1689s | 5.6 pipe/s | ETA 1439s (24.0m)
+  59% (10,323/17,496) | 1744s | 5.9 pipe/s | ETA 1212s (20.2m)
+  64% (11,198/17,496) | 1797s | 6.2 pipe/s | ETA 1011s (16.8m)
+  69% (12,073/17,496) | 1879s | 6.4 pipe/s | ETA 844s (14.1m)
+  74% (12,948/17,496) | 2020s | 6.4 pipe/s | ETA 709s (11.8m)
+  79% (13,822/17,496) | 2047s | 6.8 pipe/s | ETA 544s (9.1m)
+  84% (14,697/17,496) | 2113s | 7.0 pipe/s | ETA 402s (6.7m)
+  89% (15,572/17,496) | 2163s | 7.2 pipe/s | ETA 267s (4.5m)
+  94% (16,447/17,496) | 2179s | 7.5 pipe/s | ETA 139s (2.3m)
+  99% (17,322/17,496) | 2220s | 7.8 pipe/s | ETA 22s (0.4m)
+
+  Fase 1 completada: 244,944 rows en 2237s (37.3m)
+  Con senales: 147,204/244,944
+  Con trades:  147,204/244,944
+
+──────────────────────────────────────────────────────────────────────
+  ANALISIS DE SENSIBILIDAD (promedios across 3 exit profiles)
+──────────────────────────────────────────────────────────────────────
+
+  --- atr_mult ---
+           2.0: avg_sig=  25.2, avg_T=  4.2, avg_CR=+0.0809, avg_WR=0.432, best_CR=+0.8307, con_T=68328/81648
+           3.0: avg_sig=  16.4, avg_T=  2.7, avg_CR=+0.0647, avg_WR=0.444, best_CR=+0.8153, con_T=51282/81648
+           4.0: avg_sig=   9.9, avg_T=  1.2, avg_CR=+0.0250, avg_WR=0.233, best_CR=+0.4317, con_T=27594/81648
+
+  --- max_depth_atr ---
+          None: avg_sig=  24.5, avg_T=  4.0, avg_CR=+0.0908, avg_WR=0.458, best_CR=+0.8153, con_T=61218/81648
+             6: avg_sig=   8.8, avg_T=  1.4, avg_CR=+0.0246, avg_WR=0.252, best_CR=+0.4442, con_T=34668/81648
+             8: avg_sig=  18.2, avg_T=  2.8, avg_CR=+0.0552, avg_WR=0.398, best_CR=+0.8307, con_T=51318/81648
+
+  --- reduction ---
+           0.4: avg_sig=   6.2, avg_T=  1.0, avg_CR=+0.0096, avg_WR=0.181, best_CR=+0.3990, con_T=31248/81648
+           0.6: avg_sig=  18.9, avg_T=  3.0, avg_CR=+0.0717, avg_WR=0.410, best_CR=+0.8108, con_T=53064/81648
+           0.8: avg_sig=  26.4, avg_T=  4.1, avg_CR=+0.0893, avg_WR=0.518, best_CR=+0.8307, con_T=62892/81648
+
+  --- lookback_bars ---
+            63: avg_sig=   8.1, avg_T=  1.6, avg_CR=+0.0320, avg_WR=0.305, best_CR=+0.5370, con_T=59517/122472
+           126: avg_sig=  26.3, avg_T=  3.8, avg_CR=+0.0818, avg_WR=0.434, best_CR=+0.8307, con_T=87687/122472
+
+  --- comp_thresh ---
+          0.85: avg_sig=  14.3, avg_T=  2.4, avg_CR=+0.0477, avg_WR=0.321, best_CR=+0.7864, con_T=43818/81648
+           0.9: avg_sig=  17.9, avg_T=  2.8, avg_CR=+0.0571, avg_WR=0.387, best_CR=+0.8153, con_T=51189/81648
+          0.95: avg_sig=  19.2, avg_T=  3.0, avg_CR=+0.0659, avg_WR=0.400, best_CR=+0.8307, con_T=52197/81648
+
+  --- tolerance ---
+           0.1: avg_sig=  16.9, avg_T=  2.7, avg_CR=+0.0552, avg_WR=0.366, best_CR=+0.8307, con_T=48972/81648
+          0.15: avg_sig=  17.1, avg_T=  2.7, avg_CR=+0.0552, avg_WR=0.368, best_CR=+0.8307, con_T=48972/81648
+           0.2: avg_sig=  17.5, avg_T=  2.8, avg_CR=+0.0603, avg_WR=0.375, best_CR=+0.8307, con_T=49260/81648
+
+  --- max_depth_pct ---
+          0.25: avg_sig=  14.7, avg_T=  2.2, avg_CR=+0.0458, avg_WR=0.352, best_CR=+0.7028, con_T=47100/81648
+           0.3: avg_sig=  18.3, avg_T=  2.9, avg_CR=+0.0622, avg_WR=0.378, best_CR=+0.8307, con_T=50052/81648
+          0.35: avg_sig=  18.5, avg_T=  3.0, avg_CR=+0.0626, avg_WR=0.378, best_CR=+0.8307, con_T=50052/81648
+
+  --- asc_lows_tol ---
+          0.01: avg_sig=  16.6, avg_T=  2.6, avg_CR=+0.0527, avg_WR=0.365, best_CR=+0.8153, con_T=48636/81648
+          0.03: avg_sig=  17.5, avg_T=  2.8, avg_CR=+0.0594, avg_WR=0.373, best_CR=+0.8307, con_T=49284/81648
+          0.08: avg_sig=  17.4, avg_T=  2.8, avg_CR=+0.0586, avg_WR=0.370, best_CR=+0.8307, con_T=49284/81648
+
+  --- use_close_only ---
+         False: avg_sig=  18.1, avg_T=  3.2, avg_CR=+0.0607, avg_WR=0.354, best_CR=+0.8153, con_T=80802/122472
+          True: avg_sig=  16.2, avg_T=  2.2, avg_CR=+0.0531, avg_WR=0.385, best_CR=+0.8307, con_T=66402/122472
+
+  --- trend_template ---
+         False: avg_sig=  22.0, avg_T=  3.5, avg_CR=+0.0797, avg_WR=0.372, best_CR=+0.8307, con_T=79884/122472
+          True: avg_sig=  12.4, avg_T=  1.9, avg_CR=+0.0341, avg_WR=0.367, best_CR=+0.5339, con_T=67320/122472
+
+  --- vol_contraction ---
+         False: avg_sig=  19.3, avg_T=  3.1, avg_CR=+0.0607, avg_WR=0.408, best_CR=+0.8307, con_T=80847/122472
+          True: avg_sig=  15.1, avg_T=  2.3, avg_CR=+0.0531, avg_WR=0.331, best_CR=+0.8153, con_T=66357/122472
+
+  --- vol_filter ---
+     no_filter: avg_sig=  36.9, avg_T=  3.4, avg_CR=+0.0756, avg_WR=0.381, best_CR=+0.8307, con_T=22122/34992
+       w1_t1.2: avg_sig=  10.3, avg_T=  2.8, avg_CR=+0.0520, avg_WR=0.386, best_CR=+0.5947, con_T=21933/34992
+       w1_t1.5: avg_sig=   5.9, avg_T=  2.1, avg_CR=+0.0328, avg_WR=0.348, best_CR=+0.4263, con_T=19761/34992
+       w3_t1.2: avg_sig=  18.2, avg_T=  3.0, avg_CR=+0.0644, avg_WR=0.381, best_CR=+0.7977, con_T=21933/34992
+       w3_t1.5: avg_sig=  10.9, avg_T=  2.3, avg_CR=+0.0492, avg_WR=0.349, best_CR=+0.5531, con_T=19761/34992
+       w5_t1.2: avg_sig=  23.1, avg_T=  3.0, avg_CR=+0.0692, avg_WR=0.384, best_CR=+0.8053, con_T=21933/34992
+       w5_t1.5: avg_sig=  15.0, avg_T=  2.4, avg_CR=+0.0550, avg_WR=0.358, best_CR=+0.5815, con_T=19761/34992
+
+──────────────────────────────────────────────────────────────────────
+  ESTABILIDAD: CR por exit profile
+──────────────────────────────────────────────────────────────────────
+
+  Correlacion entre CRs de los 3 perfiles (configs con trades):
+    tight-medium:  0.862
+    tight-loose:   0.781
+    medium-loose:  0.811
+
+  Promedio CR por perfil:
+      CR_tight: mean=+0.1067, best=+1.0094
+     CR_medium: mean=+0.0861, best=+0.8721
+      CR_loose: mean=+0.0913, best=+0.9688
+
+──────────────────────────────────────────────────────────────────────
+  TOP 30 por avg_CR
+──────────────────────────────────────────────────────────────────────
+   1. atr=2.0 C mda=   8 red=0.80 lb=126 comp=0.95       vf=no_filter -> 275sen T=24.0 WR=58% CR=+83.07%
+   2. atr=2.0 C mda=   8 red=0.80 lb=126 comp=0.95       vf=no_filter -> 275sen T=24.0 WR=58% CR=+83.07%
+   3. atr=2.0 C mda=   8 red=0.80 lb=126 comp=0.95       vf=no_filter -> 275sen T=24.0 WR=58% CR=+83.07%
+   4. atr=2.0 C mda=   8 red=0.80 lb=126 comp=0.95       vf=no_filter -> 275sen T=24.0 WR=58% CR=+83.07%
+   5. atr=2.0 C mda=   8 red=0.80 lb=126 comp=0.95       vf=no_filter -> 275sen T=24.0 WR=58% CR=+83.07%
+   6. atr=2.0 C mda=   8 red=0.80 lb=126 comp=0.95       vf=no_filter -> 275sen T=24.0 WR=58% CR=+83.07%
+   7. atr=2.0 C mda=   8 red=0.80 lb=126 comp=0.95       vf=no_filter -> 275sen T=24.0 WR=58% CR=+83.07%
+   8. atr=2.0 C mda=   8 red=0.80 lb=126 comp=0.95       vf=no_filter -> 275sen T=24.0 WR=58% CR=+83.07%
+   9. atr=2.0 C mda=   8 red=0.80 lb=126 comp=0.95       vf=no_filter -> 275sen T=24.0 WR=58% CR=+83.07%
+  10. atr=2.0 C mda=   8 red=0.80 lb=126 comp=0.95       vf=no_filter -> 275sen T=24.0 WR=58% CR=+83.07%
+  11. atr=2.0 C mda=   8 red=0.80 lb=126 comp=0.95       vf=no_filter -> 275sen T=24.0 WR=58% CR=+83.07%
+  12. atr=2.0 C mda=   8 red=0.80 lb=126 comp=0.95       vf=no_filter -> 275sen T=24.0 WR=58% CR=+83.07%
+  13. atr=3.0 HL mda=None red=0.80 lb=126 comp=0.90    VC vf=no_filter -> 235sen T=19.3 WR=62% CR=+81.53%
+  14. atr=3.0 HL mda=None red=0.80 lb=126 comp=0.95    VC vf=no_filter -> 235sen T=19.3 WR=62% CR=+81.53%
+  15. atr=3.0 HL mda=None red=0.80 lb=126 comp=0.95    VC vf=no_filter -> 235sen T=19.3 WR=62% CR=+81.53%
+  16. atr=3.0 HL mda=None red=0.80 lb=126 comp=0.90    VC vf=no_filter -> 235sen T=19.3 WR=62% CR=+81.53%
+  17. atr=3.0 HL mda=None red=0.80 lb=126 comp=0.95    VC vf=no_filter -> 235sen T=19.3 WR=62% CR=+81.53%
+  18. atr=3.0 HL mda=None red=0.80 lb=126 comp=0.95    VC vf=no_filter -> 235sen T=19.3 WR=62% CR=+81.53%
+  19. atr=3.0 HL mda=None red=0.80 lb=126 comp=0.95    VC vf=no_filter -> 235sen T=19.3 WR=62% CR=+81.53%
+  20. atr=3.0 HL mda=None red=0.80 lb=126 comp=0.95    VC vf=no_filter -> 235sen T=19.3 WR=62% CR=+81.53%
+  21. atr=3.0 HL mda=None red=0.80 lb=126 comp=0.90    VC vf=no_filter -> 235sen T=19.3 WR=62% CR=+81.53%
+  22. atr=3.0 HL mda=None red=0.80 lb=126 comp=0.90    VC vf=no_filter -> 235sen T=19.3 WR=62% CR=+81.53%
+  23. atr=3.0 HL mda=None red=0.80 lb=126 comp=0.90    VC vf=no_filter -> 235sen T=19.3 WR=62% CR=+81.53%
+  24. atr=3.0 HL mda=None red=0.80 lb=126 comp=0.90    VC vf=no_filter -> 235sen T=19.3 WR=62% CR=+81.53%
+  25. atr=3.0 HL mda=None red=0.80 lb=126 comp=0.90    VC vf=no_filter -> 235sen T=19.3 WR=62% CR=+81.53%
+  26. atr=3.0 HL mda=None red=0.80 lb=126 comp=0.95    VC vf=no_filter -> 235sen T=19.3 WR=62% CR=+81.53%
+  27. atr=3.0 HL mda=None red=0.80 lb=126 comp=0.95    VC vf=no_filter -> 235sen T=19.3 WR=62% CR=+81.53%
+  28. atr=3.0 HL mda=None red=0.80 lb=126 comp=0.90    VC vf=no_filter -> 235sen T=19.3 WR=62% CR=+81.53%
+  29. atr=3.0 HL mda=None red=0.60 lb=126 comp=0.95    VC vf=no_filter -> 213sen T=17.7 WR=61% CR=+81.08%
+  30. atr=3.0 HL mda=None red=0.60 lb=126 comp=0.95    VC vf=no_filter -> 213sen T=17.7 WR=61% CR=+81.08%
+
+──────────────────────────────────────────────────────────────────────
+  TOP 30 por avg_WR (min 3 trades)
+──────────────────────────────────────────────────────────────────────
+   1. atr=2.0 C mda=None red=0.60 lb= 63 comp=0.95       vf=w5_t1.2  ->  36sen T=4.0 WR=100% CR=+28.91%
+   2. atr=2.0 C mda=None red=0.60 lb= 63 comp=0.95       vf=w5_t1.2  ->  36sen T=4.0 WR=100% CR=+28.91%
+   3. atr=2.0 C mda=None red=0.60 lb= 63 comp=0.95       vf=w5_t1.2  ->  36sen T=4.0 WR=100% CR=+28.91%
+   4. atr=2.0 C mda=None red=0.60 lb= 63 comp=0.95       vf=w5_t1.2  ->  36sen T=4.0 WR=100% CR=+28.91%
+   5. atr=2.0 C mda=None red=0.60 lb= 63 comp=0.95       vf=w5_t1.2  ->  36sen T=4.0 WR=100% CR=+28.91%
+   6. atr=2.0 C mda=None red=0.60 lb= 63 comp=0.95       vf=w5_t1.2  ->  36sen T=4.0 WR=100% CR=+28.91%
+   7. atr=2.0 C mda=   8 red=0.60 lb= 63 comp=0.95       vf=w5_t1.2  ->  36sen T=4.0 WR=100% CR=+28.91%
+   8. atr=2.0 C mda=   8 red=0.60 lb= 63 comp=0.95       vf=w5_t1.2  ->  36sen T=4.0 WR=100% CR=+28.91%
+   9. atr=2.0 C mda=   8 red=0.60 lb= 63 comp=0.95       vf=w5_t1.2  ->  36sen T=4.0 WR=100% CR=+28.91%
+  10. atr=2.0 C mda=   8 red=0.60 lb= 63 comp=0.95       vf=w5_t1.2  ->  36sen T=4.0 WR=100% CR=+28.91%
+  11. atr=2.0 C mda=   8 red=0.60 lb= 63 comp=0.95       vf=w5_t1.2  ->  36sen T=4.0 WR=100% CR=+28.91%
+  12. atr=2.0 C mda=   8 red=0.60 lb= 63 comp=0.95       vf=w5_t1.2  ->  36sen T=4.0 WR=100% CR=+28.91%
+  13. atr=3.0 HL mda=   8 red=0.80 lb= 63 comp=0.85    VC vf=w3_t1.2  ->  21sen T=4.3 WR=100% CR=+27.30%
+  14. atr=3.0 HL mda=   8 red=0.80 lb= 63 comp=0.85    VC vf=w5_t1.2  ->  25sen T=4.3 WR=100% CR=+27.30%
+  15. atr=3.0 HL mda=   8 red=0.80 lb= 63 comp=0.90    VC vf=w3_t1.2  ->  21sen T=4.3 WR=100% CR=+27.30%
+  16. atr=3.0 HL mda=   8 red=0.80 lb= 63 comp=0.90    VC vf=w5_t1.2  ->  25sen T=4.3 WR=100% CR=+27.30%
+  17. atr=3.0 HL mda=   8 red=0.80 lb= 63 comp=0.95    VC vf=w3_t1.2  ->  21sen T=4.3 WR=100% CR=+27.30%
+  18. atr=3.0 HL mda=   8 red=0.80 lb= 63 comp=0.95    VC vf=w5_t1.2  ->  25sen T=4.3 WR=100% CR=+27.30%
+  19. atr=3.0 HL mda=   8 red=0.80 lb= 63 comp=0.85    VC vf=w3_t1.2  ->  21sen T=4.3 WR=100% CR=+27.30%
+  20. atr=3.0 HL mda=   8 red=0.80 lb= 63 comp=0.85    VC vf=w5_t1.2  ->  25sen T=4.3 WR=100% CR=+27.30%
+  21. atr=3.0 HL mda=   8 red=0.80 lb= 63 comp=0.90    VC vf=w3_t1.2  ->  21sen T=4.3 WR=100% CR=+27.30%
+  22. atr=3.0 HL mda=   8 red=0.80 lb= 63 comp=0.90    VC vf=w5_t1.2  ->  25sen T=4.3 WR=100% CR=+27.30%
+  23. atr=3.0 HL mda=   8 red=0.80 lb= 63 comp=0.95    VC vf=w3_t1.2  ->  21sen T=4.3 WR=100% CR=+27.30%
+  24. atr=3.0 HL mda=   8 red=0.80 lb= 63 comp=0.95    VC vf=w5_t1.2  ->  25sen T=4.3 WR=100% CR=+27.30%
+  25. atr=3.0 HL mda=   8 red=0.80 lb= 63 comp=0.85    VC vf=w3_t1.2  ->  21sen T=4.3 WR=100% CR=+27.30%
+  26. atr=3.0 HL mda=   8 red=0.80 lb= 63 comp=0.85    VC vf=w5_t1.2  ->  25sen T=4.3 WR=100% CR=+27.30%
+  27. atr=3.0 HL mda=   8 red=0.80 lb= 63 comp=0.90    VC vf=w3_t1.2  ->  21sen T=4.3 WR=100% CR=+27.30%
+  28. atr=3.0 HL mda=   8 red=0.80 lb= 63 comp=0.90    VC vf=w5_t1.2  ->  25sen T=4.3 WR=100% CR=+27.30%
+  29. atr=3.0 HL mda=   8 red=0.80 lb= 63 comp=0.95    VC vf=w3_t1.2  ->  21sen T=4.3 WR=100% CR=+27.30%
+  30. atr=3.0 HL mda=   8 red=0.80 lb= 63 comp=0.95    VC vf=w5_t1.2  ->  25sen T=4.3 WR=100% CR=+27.30%
+
+======================================================================
+  SELECCION DE CANDIDATOS
+  Eligible: 89,950/244,944 (min 3 trades promedio)
+  Dedup por resultados: 2,074 configs unicas
+======================================================================
+  Top 10 por avg_CR + Top 10 por avg_WR = 20 candidatos unicos
+   1. [CR] atr=2.0 mda=   8 red=0.80 lb=126 TT=N VC=N vf=no_filter -> T=24.0 WR=58% CR=+83.07%
+   2. [CR] atr=3.0 mda=None red=0.80 lb=126 TT=N VC=Y vf=no_filter -> T=19.3 WR=62% CR=+81.53%
+   3. [CR] atr=3.0 mda=None red=0.60 lb=126 TT=N VC=Y vf=no_filter -> T=17.7 WR=61% CR=+81.08%
+   4. [CR] atr=3.0 mda=None red=0.60 lb=126 TT=N VC=Y vf=no_filter -> T=16.7 WR=63% CR=+80.80%
+   5. [CR] atr=3.0 mda=None red=0.80 lb=126 TT=N VC=Y vf=w5_t1.2  -> T=17.3 WR=71% CR=+80.53%
+   6. [CR] atr=3.0 mda=None red=0.60 lb=126 TT=N VC=Y vf=w5_t1.2  -> T=15.7 WR=70% CR=+80.00%
+   7. [CR] atr=3.0 mda=None red=0.80 lb=126 TT=N VC=Y vf=w3_t1.2  -> T=17.3 WR=71% CR=+79.77%
+   8. [CR] atr=3.0 mda=None red=0.80 lb=126 TT=N VC=N vf=no_filter -> T=20.3 WR=59% CR=+79.50%
+   9. [CR] atr=3.0 mda=None red=0.60 lb=126 TT=N VC=Y vf=w3_t1.2  -> T=15.7 WR=70% CR=+79.26%
+  10. [CR] atr=3.0 mda=None red=0.80 lb=126 TT=N VC=N vf=no_filter -> T=19.3 WR=61% CR=+79.16%
+  11. [WR] atr=2.0 mda=None red=0.60 lb=63 TT=N VC=N vf=w5_t1.2  -> T=4.0 WR=100% CR=+28.91%
+  12. [WR] atr=3.0 mda=   8 red=0.80 lb=63 TT=N VC=Y vf=w3_t1.2  -> T=4.3 WR=100% CR=+27.30%
+  13. [WR] atr=3.0 mda=   8 red=0.80 lb=63 TT=N VC=Y vf=w5_t1.2  -> T=4.3 WR=100% CR=+27.30%
+  14. [WR] atr=2.0 mda=None red=0.60 lb=63 TT=N VC=N vf=w1_t1.2  -> T=4.0 WR=100% CR=+26.26%
+  15. [WR] atr=2.0 mda=None red=0.60 lb=63 TT=N VC=N vf=w3_t1.2  -> T=4.0 WR=100% CR=+26.26%
+  16. [WR] atr=2.0 mda=None red=0.60 lb=63 TT=N VC=N vf=w5_t1.2  -> T=3.0 WR=100% CR=+25.61%
+  17. [WR] atr=2.0 mda=None red=0.60 lb=63 TT=N VC=Y vf=w1_t1.2  -> T=3.0 WR=100% CR=+24.23%
+  18. [WR] atr=2.0 mda=None red=0.60 lb=63 TT=N VC=Y vf=w3_t1.2  -> T=3.0 WR=100% CR=+24.23%
+  19. [WR] atr=2.0 mda=None red=0.60 lb=63 TT=N VC=Y vf=w5_t1.2  -> T=3.0 WR=100% CR=+24.23%
+  20. [WR] atr=2.0 mda=None red=0.60 lb=63 TT=N VC=N vf=w1_t1.2  -> T=3.0 WR=100% CR=+23.02%
+
+======================================================================
+  FASE 2: SALIDA — AMZN TRAIN (720 configs x 20 candidatos)
+======================================================================
+  Candidato 1/20: 275 senales, evaluando 720 exits...
+  Candidato 2/20: 235 senales, evaluando 720 exits...
+  Candidato 3/20: 213 senales, evaluando 720 exits...
+  Candidato 4/20: 189 senales, evaluando 720 exits...
+  Candidato 5/20: 142 senales, evaluando 720 exits...
+  Candidato 6/20: 120 senales, evaluando 720 exits...
+  Candidato 7/20: 107 senales, evaluando 720 exits...
+  Candidato 8/20: 239 senales, evaluando 720 exits...
+  Candidato 9/20: 89 senales, evaluando 720 exits...
+  Candidato 10/20: 215 senales, evaluando 720 exits...
+  Candidato 11/20: 36 senales, evaluando 720 exits...
+  Candidato 12/20: 21 senales, evaluando 720 exits...
+  Candidato 13/20: 25 senales, evaluando 720 exits...
+  Candidato 14/20: 17 senales, evaluando 720 exits...
+  Candidato 15/20: 29 senales, evaluando 720 exits...
+  Candidato 16/20: 30 senales, evaluando 720 exits...
+  Candidato 17/20: 16 senales, evaluando 720 exits...
+  Candidato 18/20: 27 senales, evaluando 720 exits...
+  Candidato 19/20: 33 senales, evaluando 720 exits...
+  Candidato 20/20: 15 senales, evaluando 720 exits...
+
+  Fase 2 completada: 14,400 rows en 45s (0.7m)
+
+  Top 10 exits por candidato:
+    C 1: trail=2.0, target=3.0, early=5, be_R=1.0, sl=0.05 -> 33T WR=45% CR=+121.77%
+    C 2: trail=2.0, target=5.0, early=5, be_R=1.0, sl=0.05 -> 25T WR=44% CR=+98.09%
+    C 3: trail=2.0, target=5.0, early=3, be_R=1.0, sl=0.05 -> 19T WR=53% CR=+103.38%
+    C 4: trail=2.0, target=5.0, early=3, be_R=1.0, sl=0.05 -> 18T WR=50% CR=+98.16%
+    C 5: trail=2.0, target=None, early=None, be_R=1.5, sl=0.03 -> 14T WR=71% CR=+106.18%
+    C 6: trail=2.0, target=None, early=None, be_R=1.5, sl=0.03 -> 12T WR=75% CR=+111.12%
+    C 7: trail=2.0, target=None, early=None, be_R=1.5, sl=0.03 -> 14T WR=71% CR=+106.18%
+    C 8: trail=2.0, target=5.0, early=5, be_R=1.0, sl=0.05 -> 27T WR=41% CR=+95.77%
+    C 9: trail=2.0, target=None, early=None, be_R=1.5, sl=0.03 -> 12T WR=75% CR=+111.12%
+    C10: trail=2.0, target=5.0, early=5, be_R=1.0, sl=0.05 -> 26T WR=38% CR=+90.74%
+    C11: trail=2.5, target=2.0, early=None, be_R=1.0, sl=0.03 -> 6T WR=100% CR=+37.58%
+    C12: trail=2.5, target=3.0, early=None, be_R=1.5, sl=0.03 -> 4T WR=100% CR=+37.95%
+    C13: trail=2.5, target=3.0, early=None, be_R=1.5, sl=0.03 -> 4T WR=100% CR=+37.95%
+    C14: trail=2.5, target=2.0, early=None, be_R=1.0, sl=0.03 -> 6T WR=100% CR=+31.09%
+    C15: trail=2.5, target=2.0, early=None, be_R=1.0, sl=0.03 -> 6T WR=100% CR=+31.09%
+    C16: trail=2.5, target=2.0, early=None, be_R=1.0, sl=0.03 -> 5T WR=100% CR=+27.71%
+    C17: trail=2.5, target=2.0, early=None, be_R=1.0, sl=0.03 -> 5T WR=100% CR=+29.76%
+    C18: trail=2.5, target=2.0, early=None, be_R=1.0, sl=0.03 -> 5T WR=100% CR=+29.76%
+    C19: trail=2.5, target=2.0, early=None, be_R=1.0, sl=0.03 -> 5T WR=100% CR=+29.76%
+    C20: trail=2.5, target=3.0, early=None, be_R=1.0, sl=0.07 -> 3T WR=100% CR=+25.03%
+
+======================================================================
+  RANKING FINAL — AMZN TRAIN
+======================================================================
+
+  Top 10 combos por composite (50% CR + 30% WR + 20% avg_R):
+
+    #   Comp    T     WR         CR    avgR  trail target early be_R    sl        vf TT VC
+  ───────────────────────────────────────────────────────────────────────────────────────────────
+    1  0.771   12  75%   +111.12%  +2.21    2.0   None  None  1.5  0.03   w3_t1.2  N  Y
+    2  0.771   12  75%   +111.12%  +2.21    2.0   None  None  1.5  0.03   w5_t1.2  N  Y
+    3  0.696   14  71%   +106.18%  +1.84    2.0   None  None  1.5  0.03   w5_t1.2  N  Y
+    4  0.696   14  71%   +106.18%  +1.84    2.0   None  None  1.5  0.03   w3_t1.2  N  Y
+    5  0.567    4  100%    +37.95%  +2.80    2.5    3.0  None  1.5  0.03   w3_t1.2  N  Y
+    6  0.567    4  100%    +37.95%  +2.80    2.5    3.0  None  1.5  0.03   w5_t1.2  N  Y
+    7  0.534   33  45%   +121.77%  +0.53    2.0    3.0     5  1.0  0.05  no_filter  N  N
+    8  0.499   19  53%   +103.38%  +0.80    2.0    5.0     3  1.0  0.05  no_filter  N  Y
+    9  0.480    6  100%    +37.58%  +1.83    2.5    2.0  None  1.0  0.03   w5_t1.2  N  N
+   10  0.460   18  50%    +98.16%  +0.82    2.0    5.0     3  1.0  0.05  no_filter  N  Y
+
+──────────────────────────────────────────────────────────────────────
+  DETALLE DE TRADES — Top 3 combos
+──────────────────────────────────────────────────────────────────────
+
+  #1 (composite=0.771): trail=2.0, target=None, vf=w3_t1.2, TT=N
+     12T, WR=75%, CR=+111.12%, avgR=+2.21
+     Salidas: stop_loss=1, time_exit=2, trailing_stop=9
+      1: 2016-04-29 -> 2016-06-23 | time_exit       | PnL=+9.47% | R=+3.2R | MaxR=3.5R | Dur=55d
+      2: 2016-06-24 -> 2016-09-01 | time_exit       | PnL=+10.25% | R=+3.4R | MaxR=3.5R | Dur=69d
+      3: 2017-03-29 -> 2017-04-13 | trailing_stop   | PnL=+1.18% | R=+0.4R | MaxR=1.3R | Dur=15d
+      4: 2017-04-27 -> 2017-06-09 | trailing_stop   | PnL=+6.53% | R=+2.2R | MaxR=3.4R | Dur=43d
+      5: 2017-10-12 -> 2017-10-20 | stop_loss       | PnL=-1.80% | R=-0.6R | MaxR=0.3R | Dur=8d
+      6: 2017-10-27 -> 2017-12-04 | trailing_stop   | PnL=+3.00% | R=+1.0R | MaxR=2.9R | Dur=38d
+      7: 2017-12-05 -> 2018-02-01 | trailing_stop   | PnL=+21.76% | R=+7.3R | MaxR=9.0R | Dur=58d
+      8: 2018-07-12 -> 2018-07-30 | trailing_stop   | PnL=-0.97% | R=-0.3R | MaxR=1.2R | Dur=18d
+      9: 2018-07-31 -> 2018-09-06 | trailing_stop   | PnL=+10.18% | R=+3.4R | MaxR=4.9R | Dur=37d
+     10: 2019-03-18 -> 2019-05-10 | trailing_stop   | PnL=+8.49% | R=+2.8R | MaxR=4.2R | Dur=53d
+     11: 2019-05-13 -> 2019-05-23 | trailing_stop   | PnL=-0.40% | R=-0.1R | MaxR=1.6R | Dur=10d
+     12: 2019-06-05 -> 2019-07-26 | trailing_stop   | PnL=+11.77% | R=+3.9R | MaxR=5.4R | Dur=51d
+
+  #2 (composite=0.771): trail=2.0, target=None, vf=w5_t1.2, TT=N
+     12T, WR=75%, CR=+111.12%, avgR=+2.21
+     Salidas: stop_loss=1, time_exit=2, trailing_stop=9
+      1: 2016-04-29 -> 2016-06-23 | time_exit       | PnL=+9.47% | R=+3.2R | MaxR=3.5R | Dur=55d
+      2: 2016-06-24 -> 2016-09-01 | time_exit       | PnL=+10.25% | R=+3.4R | MaxR=3.5R | Dur=69d
+      3: 2017-03-29 -> 2017-04-13 | trailing_stop   | PnL=+1.18% | R=+0.4R | MaxR=1.3R | Dur=15d
+      4: 2017-04-27 -> 2017-06-09 | trailing_stop   | PnL=+6.53% | R=+2.2R | MaxR=3.4R | Dur=43d
+      5: 2017-10-12 -> 2017-10-20 | stop_loss       | PnL=-1.80% | R=-0.6R | MaxR=0.3R | Dur=8d
+      6: 2017-10-27 -> 2017-12-04 | trailing_stop   | PnL=+3.00% | R=+1.0R | MaxR=2.9R | Dur=38d
+      7: 2017-12-05 -> 2018-02-01 | trailing_stop   | PnL=+21.76% | R=+7.3R | MaxR=9.0R | Dur=58d
+      8: 2018-07-12 -> 2018-07-30 | trailing_stop   | PnL=-0.97% | R=-0.3R | MaxR=1.2R | Dur=18d
+      9: 2018-07-31 -> 2018-09-06 | trailing_stop   | PnL=+10.18% | R=+3.4R | MaxR=4.9R | Dur=37d
+     10: 2019-03-18 -> 2019-05-10 | trailing_stop   | PnL=+8.49% | R=+2.8R | MaxR=4.2R | Dur=53d
+     11: 2019-05-13 -> 2019-05-23 | trailing_stop   | PnL=-0.40% | R=-0.1R | MaxR=1.6R | Dur=10d
+     12: 2019-06-05 -> 2019-07-26 | trailing_stop   | PnL=+11.77% | R=+3.9R | MaxR=5.4R | Dur=51d
+
+  #3 (composite=0.696): trail=2.0, target=None, vf=w5_t1.2, TT=N
+     14T, WR=71%, CR=+106.18%, avgR=+1.84
+     Salidas: stop_loss=1, time_exit=2, trailing_stop=11
+      1: 2016-04-29 -> 2016-06-23 | time_exit       | PnL=+9.47% | R=+3.2R | MaxR=3.5R | Dur=55d
+      2: 2016-06-24 -> 2016-09-01 | time_exit       | PnL=+10.25% | R=+3.4R | MaxR=3.5R | Dur=69d
+      3: 2016-09-22 -> 2016-10-14 | trailing_stop   | PnL=+2.27% | R=+0.8R | MaxR=1.6R | Dur=22d
+      4: 2016-10-17 -> 2016-10-28 | trailing_stop   | PnL=-4.51% | R=-1.5R | MaxR=1.0R | Dur=11d
+      5: 2017-03-29 -> 2017-04-13 | trailing_stop   | PnL=+1.18% | R=+0.4R | MaxR=1.3R | Dur=15d
+      6: 2017-04-27 -> 2017-06-09 | trailing_stop   | PnL=+6.53% | R=+2.2R | MaxR=3.4R | Dur=43d
+      7: 2017-10-12 -> 2017-10-20 | stop_loss       | PnL=-1.80% | R=-0.6R | MaxR=0.3R | Dur=8d
+      8: 2017-10-27 -> 2017-12-04 | trailing_stop   | PnL=+3.00% | R=+1.0R | MaxR=2.9R | Dur=38d
+      9: 2017-12-05 -> 2018-02-01 | trailing_stop   | PnL=+21.76% | R=+7.3R | MaxR=9.0R | Dur=58d
+     10: 2018-07-12 -> 2018-07-30 | trailing_stop   | PnL=-0.97% | R=-0.3R | MaxR=1.2R | Dur=18d
+     11: 2018-07-31 -> 2018-09-06 | trailing_stop   | PnL=+10.18% | R=+3.4R | MaxR=4.9R | Dur=37d
+     12: 2019-03-18 -> 2019-05-10 | trailing_stop   | PnL=+8.49% | R=+2.8R | MaxR=4.2R | Dur=53d
+     13: 2019-05-13 -> 2019-05-23 | trailing_stop   | PnL=-0.40% | R=-0.1R | MaxR=1.6R | Dur=10d
+     14: 2019-06-05 -> 2019-07-26 | trailing_stop   | PnL=+11.77% | R=+3.9R | MaxR=5.4R | Dur=51d
+
+  Guardado: /home/gdelarosa/proyectos/deteccion-vcp/experiments/stocks_deep_per_ticker_v2/results/amzn_phase1_detection.csv
+  Guardado: /home/gdelarosa/proyectos/deteccion-vcp/experiments/stocks_deep_per_ticker_v2/results/amzn_phase2_exit.csv
+
+  Tiempo total AMZN: 2285s (38.1m)
+
+######################################################################
+  AMZN — COMPLETO
+######################################################################
+
+Todo completo!

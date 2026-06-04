@@ -122,6 +122,15 @@ Lo que varia entre ellas es: volume_contraction (on/off), vol_filter, y config d
 | **WR#2** tr=2.0 tg=2R sl=3% w3_t1.2 | 11 | 9 | 2 | 82% | +47.91% | 9.83% | -3.28% | 4.08 | +1.23 | 8.6 | 8% |
 | **WR#3** tr=2.0 tg=2R sl=5% no_filter VC | 8 | 7 | 1 | 88% | +54.28% | 22.04% | -0.95% | 5.10 | +1.13 | 48.7 | 9% |
 
+### Mejores por Sharpe ratio
+
+| Variante | T | W | L | WR | CR | CAGR | MaxDD | Sharpe | avgR | PF | Exp |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| **Buy & Hold AAPL** | — | — | — | — | +168.59% | 21.89% | -38.73% | 0.92 | — | — | 100% |
+| **WR#1** tr=1.0 tg=3R sl=3% w5_t1.2 | 4 | 4 | 0 | 100% | +24.43% | 4.48% | 0.00% | **1.91** | +1.88 | inf | 7% |
+| **COMP#1** tr=2.0 tg=2R sl=5% no_filter VC | 8 | 7 | 1 | 88% | +54.28% | 9.07% | -0.95% | **1.83** | +1.13 | 48.7 | 13% |
+| **COMP#3** tr=2.0 tg=2R sl=5% no_filter comp=0.85 | 11 | 8 | 3 | 73% | +56.01% | 9.32% | -2.10% | **1.47** | +0.84 | 14.3 | 17% |
+
 ### Mejores por composite (50% CR + 30% WR + 20% avg_R)
 
 | Variante | Comp | T | W | L | WR | CR | CAGR | MaxDD | Sharpe | avgR | PF | Exp |

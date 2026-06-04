@@ -1,0 +1,295 @@
+======================================================================
+  AMZN — Evaluacion en TEST (2020-2026)
+======================================================================
+  TRAIN: 1,258 barras (2015-01-02 a 2019-12-31)
+  TEST:  1,574 barras (2020-01-02 a 2026-04-08)
+  Stage 2 en train: 471/1258 dias
+  Stage 2 en test:  389/1574 dias
+
+  Buy & Hold TRAIN: CR=+498.94%, CAGR=43.13%, MaxDD=-34.10%, Sharpe=1.37
+  Buy & Hold TEST:  CR=+133.14%, CAGR=14.51%, MaxDD=-56.15%, Sharpe=0.56
+
+──────────────────────────────────────────────────────────────────────
+  COMP#1 (w3_t1.2, red=0.60, VC=Y)
+──────────────────────────────────────────────────────────────────────
+
+  TRAIN: 12T, 9W, 3L, WR=75%, CR=+111.12%, CAGR=16.15%, MaxDD=-1.80%, avgR=+2.21, PF=26.1, Exp=36% (0.2s)
+    Salidas: stop_loss=1, time_exit=2, trailing_stop=9
+     1: 2016-04-29 -> 2016-06-23 | time_exit       | PnL=+9.47% | R=+3.2R | MaxR=3.5R | Dur=55d
+     2: 2016-06-24 -> 2016-09-01 | time_exit       | PnL=+10.25% | R=+3.4R | MaxR=3.5R | Dur=69d
+     3: 2017-03-29 -> 2017-04-13 | trailing_stop   | PnL=+1.18% | R=+0.4R | MaxR=1.3R | Dur=15d
+     4: 2017-04-27 -> 2017-06-09 | trailing_stop   | PnL=+6.53% | R=+2.2R | MaxR=3.4R | Dur=43d
+     5: 2017-10-12 -> 2017-10-20 | stop_loss       | PnL=-1.80% | R=-0.6R | MaxR=0.3R | Dur=8d
+     6: 2017-10-27 -> 2017-12-04 | trailing_stop   | PnL=+3.00% | R=+1.0R | MaxR=2.9R | Dur=38d
+     7: 2017-12-05 -> 2018-02-01 | trailing_stop   | PnL=+21.76% | R=+7.3R | MaxR=9.0R | Dur=58d
+     8: 2018-07-12 -> 2018-07-30 | trailing_stop   | PnL=-0.97% | R=-0.3R | MaxR=1.2R | Dur=18d
+     9: 2018-07-31 -> 2018-09-06 | trailing_stop   | PnL=+10.18% | R=+3.4R | MaxR=4.9R | Dur=37d
+    10: 2019-03-18 -> 2019-05-10 | trailing_stop   | PnL=+8.49% | R=+2.8R | MaxR=4.2R | Dur=53d
+    11: 2019-05-13 -> 2019-05-23 | trailing_stop   | PnL=-0.40% | R=-0.1R | MaxR=1.6R | Dur=10d
+    12: 2019-06-05 -> 2019-07-26 | trailing_stop   | PnL=+11.77% | R=+3.9R | MaxR=5.4R | Dur=51d
+
+  TEST: 0T, 0W, 0L, WR=0%, CR=+0.00%, CAGR=0.00%, MaxDD=0.00%, avgR=+0.00, PF=inf, Exp=0% (0.1s)
+    Salidas: 
+
+──────────────────────────────────────────────────────────────────────
+  COMP#2 (w5_t1.2, red=0.60, VC=Y)
+──────────────────────────────────────────────────────────────────────
+
+  TRAIN: 12T, 9W, 3L, WR=75%, CR=+111.12%, CAGR=16.15%, MaxDD=-1.80%, avgR=+2.21, PF=26.1, Exp=36% (0.2s)
+    Salidas: stop_loss=1, time_exit=2, trailing_stop=9
+     1: 2016-04-29 -> 2016-06-23 | time_exit       | PnL=+9.47% | R=+3.2R | MaxR=3.5R | Dur=55d
+     2: 2016-06-24 -> 2016-09-01 | time_exit       | PnL=+10.25% | R=+3.4R | MaxR=3.5R | Dur=69d
+     3: 2017-03-29 -> 2017-04-13 | trailing_stop   | PnL=+1.18% | R=+0.4R | MaxR=1.3R | Dur=15d
+     4: 2017-04-27 -> 2017-06-09 | trailing_stop   | PnL=+6.53% | R=+2.2R | MaxR=3.4R | Dur=43d
+     5: 2017-10-12 -> 2017-10-20 | stop_loss       | PnL=-1.80% | R=-0.6R | MaxR=0.3R | Dur=8d
+     6: 2017-10-27 -> 2017-12-04 | trailing_stop   | PnL=+3.00% | R=+1.0R | MaxR=2.9R | Dur=38d
+     7: 2017-12-05 -> 2018-02-01 | trailing_stop   | PnL=+21.76% | R=+7.3R | MaxR=9.0R | Dur=58d
+     8: 2018-07-12 -> 2018-07-30 | trailing_stop   | PnL=-0.97% | R=-0.3R | MaxR=1.2R | Dur=18d
+     9: 2018-07-31 -> 2018-09-06 | trailing_stop   | PnL=+10.18% | R=+3.4R | MaxR=4.9R | Dur=37d
+    10: 2019-03-18 -> 2019-05-10 | trailing_stop   | PnL=+8.49% | R=+2.8R | MaxR=4.2R | Dur=53d
+    11: 2019-05-13 -> 2019-05-23 | trailing_stop   | PnL=-0.40% | R=-0.1R | MaxR=1.6R | Dur=10d
+    12: 2019-06-05 -> 2019-07-26 | trailing_stop   | PnL=+11.77% | R=+3.9R | MaxR=5.4R | Dur=51d
+
+  TEST: 0T, 0W, 0L, WR=0%, CR=+0.00%, CAGR=0.00%, MaxDD=0.00%, avgR=+0.00, PF=inf, Exp=0% (0.1s)
+    Salidas: 
+
+──────────────────────────────────────────────────────────────────────
+  COMP#3 (w5_t1.2, red=0.80, VC=Y)
+──────────────────────────────────────────────────────────────────────
+
+  TRAIN: 14T, 10W, 4L, WR=71%, CR=+106.18%, CAGR=15.60%, MaxDD=-4.51%, avgR=+1.84, PF=11.1, Exp=39% (0.2s)
+    Salidas: stop_loss=1, time_exit=2, trailing_stop=11
+     1: 2016-04-29 -> 2016-06-23 | time_exit       | PnL=+9.47% | R=+3.2R | MaxR=3.5R | Dur=55d
+     2: 2016-06-24 -> 2016-09-01 | time_exit       | PnL=+10.25% | R=+3.4R | MaxR=3.5R | Dur=69d
+     3: 2016-09-22 -> 2016-10-14 | trailing_stop   | PnL=+2.27% | R=+0.8R | MaxR=1.6R | Dur=22d
+     4: 2016-10-17 -> 2016-10-28 | trailing_stop   | PnL=-4.51% | R=-1.5R | MaxR=1.0R | Dur=11d
+     5: 2017-03-29 -> 2017-04-13 | trailing_stop   | PnL=+1.18% | R=+0.4R | MaxR=1.3R | Dur=15d
+     6: 2017-04-27 -> 2017-06-09 | trailing_stop   | PnL=+6.53% | R=+2.2R | MaxR=3.4R | Dur=43d
+     7: 2017-10-12 -> 2017-10-20 | stop_loss       | PnL=-1.80% | R=-0.6R | MaxR=0.3R | Dur=8d
+     8: 2017-10-27 -> 2017-12-04 | trailing_stop   | PnL=+3.00% | R=+1.0R | MaxR=2.9R | Dur=38d
+     9: 2017-12-05 -> 2018-02-01 | trailing_stop   | PnL=+21.76% | R=+7.3R | MaxR=9.0R | Dur=58d
+    10: 2018-07-12 -> 2018-07-30 | trailing_stop   | PnL=-0.97% | R=-0.3R | MaxR=1.2R | Dur=18d
+    11: 2018-07-31 -> 2018-09-06 | trailing_stop   | PnL=+10.18% | R=+3.4R | MaxR=4.9R | Dur=37d
+    12: 2019-03-18 -> 2019-05-10 | trailing_stop   | PnL=+8.49% | R=+2.8R | MaxR=4.2R | Dur=53d
+    13: 2019-05-13 -> 2019-05-23 | trailing_stop   | PnL=-0.40% | R=-0.1R | MaxR=1.6R | Dur=10d
+    14: 2019-06-05 -> 2019-07-26 | trailing_stop   | PnL=+11.77% | R=+3.9R | MaxR=5.4R | Dur=51d
+
+  TEST: 0T, 0W, 0L, WR=0%, CR=+0.00%, CAGR=0.00%, MaxDD=0.00%, avgR=+0.00, PF=inf, Exp=0% (0.1s)
+    Salidas: 
+
+──────────────────────────────────────────────────────────────────────
+  CR#1 (no_filter, atr=2.0, Close, VC=N)
+──────────────────────────────────────────────────────────────────────
+
+  TRAIN: 33T, 15W, 18L, WR=45%, CR=+121.77%, CAGR=17.30%, MaxDD=-5.38%, avgR=+0.53, PF=5.4, Exp=40% (0.1s)
+    Salidas: early_exit=15, open=1, target=3, time_exit=7, trailing_stop=7
+     1: 2015-07-13 -> 2015-07-24 | target          | PnL=+16.21% | R=+3.2R | MaxR=3.2R | Dur=11d
+     2: 2015-07-27 -> 2015-07-28 | early_exit      | PnL=-1.01% | R=-0.2R | MaxR=0.0R | Dur=1d
+     3: 2015-07-29 -> 2015-08-19 | time_exit       | PnL=+0.74% | R=+0.1R | MaxR=0.3R | Dur=21d
+     4: 2015-08-20 -> 2015-08-21 | early_exit      | PnL=-4.13% | R=-0.8R | MaxR=0.0R | Dur=1d
+     5: 2015-08-24 -> 2015-09-17 | target          | PnL=+16.29% | R=+3.3R | MaxR=3.3R | Dur=24d
+     6: 2016-04-29 -> 2016-05-05 | early_exit      | PnL=-0.08% | R=-0.0R | MaxR=0.7R | Dur=6d
+     7: 2016-05-06 -> 2016-06-21 | time_exit       | PnL=+6.21% | R=+1.2R | MaxR=1.6R | Dur=46d
+     8: 2016-06-22 -> 2016-06-24 | early_exit      | PnL=-1.64% | R=-0.3R | MaxR=0.3R | Dur=2d
+     9: 2016-06-27 -> 2016-07-27 | time_exit       | PnL=+6.55% | R=+1.3R | MaxR=1.8R | Dur=30d
+    10: 2016-07-28 -> 2016-09-02 | time_exit       | PnL=+2.63% | R=+0.5R | MaxR=0.5R | Dur=36d
+    11: 2016-09-21 -> 2016-10-14 | trailing_stop   | PnL=+4.21% | R=+1.1R | MaxR=1.8R | Dur=23d
+    12: 2016-10-17 -> 2016-10-20 | early_exit      | PnL=-0.32% | R=-0.1R | MaxR=0.1R | Dur=3d
+    13: 2016-10-21 -> 2016-10-27 | early_exit      | PnL=-0.08% | R=-0.0R | MaxR=0.5R | Dur=6d
+    14: 2017-02-15 -> 2017-03-09 | time_exit       | PnL=+1.22% | R=+0.3R | MaxR=0.3R | Dur=22d
+    15: 2017-03-10 -> 2017-03-17 | early_exit      | PnL=-0.02% | R=-0.0R | MaxR=0.0R | Dur=7d
+    16: 2017-03-20 -> 2017-03-21 | early_exit      | PnL=-1.61% | R=-0.3R | MaxR=0.0R | Dur=1d
+    17: 2017-03-22 -> 2017-03-23 | early_exit      | PnL=-0.08% | R=-0.0R | MaxR=0.0R | Dur=1d
+    18: 2017-03-24 -> 2017-04-13 | trailing_stop   | PnL=+4.62% | R=+0.9R | MaxR=1.5R | Dur=20d
+    19: 2017-04-17 -> 2017-04-19 | early_exit      | PnL=-0.31% | R=-0.1R | MaxR=0.0R | Dur=2d
+    20: 2017-04-20 -> 2017-04-21 | early_exit      | PnL=-0.39% | R=-0.1R | MaxR=0.0R | Dur=1d
+    21: 2017-04-24 -> 2017-05-22 | time_exit       | PnL=+6.97% | R=+1.4R | MaxR=1.4R | Dur=28d
+    22: 2017-10-27 -> 2017-11-02 | early_exit      | PnL=-0.61% | R=-0.1R | MaxR=0.2R | Dur=6d
+    23: 2017-11-03 -> 2017-12-04 | trailing_stop   | PnL=+2.01% | R=+0.4R | MaxR=1.5R | Dur=31d
+    24: 2017-12-05 -> 2018-01-22 | target          | PnL=+16.27% | R=+3.3R | MaxR=3.3R | Dur=48d
+    25: 2018-07-12 -> 2018-07-30 | trailing_stop   | PnL=-0.97% | R=-0.2R | MaxR=0.7R | Dur=18d
+    26: 2018-07-31 -> 2018-09-06 | trailing_stop   | PnL=+10.18% | R=+2.0R | MaxR=2.9R | Dur=37d
+    27: 2019-01-31 -> 2019-02-01 | early_exit      | PnL=-5.38% | R=-1.1R | MaxR=0.0R | Dur=1d
+    28: 2019-03-15 -> 2019-04-11 | time_exit       | PnL=+7.69% | R=+1.5R | MaxR=1.6R | Dur=27d
+    29: 2019-04-12 -> 2019-05-10 | trailing_stop   | PnL=+2.55% | R=+0.5R | MaxR=1.3R | Dur=28d
+    30: 2019-05-13 -> 2019-05-23 | trailing_stop   | PnL=-0.40% | R=-0.1R | MaxR=0.9R | Dur=10d
+    31: 2019-11-27 -> 2019-11-29 | early_exit      | PnL=-0.97% | R=-0.2R | MaxR=0.0R | Dur=2d
+    32: 2019-12-26 -> 2019-12-30 | early_exit      | PnL=-1.17% | R=-0.2R | MaxR=0.0R | Dur=4d
+    33: 2019-12-31 -> 2019-12-31 | open            | PnL=+0.00% | R=+0.0R | MaxR=0.0R | Dur=0d
+
+  TEST: 31T, 4W, 27L, WR=13%, CR=-8.93%, CAGR=-1.49%, MaxDD=-15.26%, avgR=-0.05, PF=0.8, Exp=14% (0.1s)
+    Salidas: early_exit=24, stop_loss=1, target=1, time_exit=1, trailing_stop=4
+     1: 2021-02-02 -> 2021-02-03 | early_exit      | PnL=-2.00% | R=-0.4R | MaxR=0.0R | Dur=1d
+     2: 2021-02-05 -> 2021-02-08 | early_exit      | PnL=-0.87% | R=-0.2R | MaxR=0.0R | Dur=3d
+     3: 2022-07-29 -> 2022-08-02 | early_exit      | PnL=-0.59% | R=-0.1R | MaxR=0.1R | Dur=4d
+     4: 2022-08-03 -> 2022-08-08 | early_exit      | PnL=-0.08% | R=-0.0R | MaxR=0.4R | Dur=5d
+     5: 2022-08-09 -> 2022-08-22 | trailing_stop   | PnL=-3.34% | R=-0.7R | MaxR=1.0R | Dur=13d
+     6: 2022-08-23 -> 2022-08-26 | early_exit      | PnL=-2.15% | R=-0.4R | MaxR=0.5R | Dur=3d
+     7: 2022-08-29 -> 2022-08-30 | early_exit      | PnL=-0.82% | R=-0.2R | MaxR=0.0R | Dur=1d
+     8: 2022-08-31 -> 2022-09-06 | early_exit      | PnL=-0.52% | R=-0.1R | MaxR=0.2R | Dur=6d
+     9: 2022-09-07 -> 2022-09-13 | early_exit      | PnL=-2.05% | R=-0.4R | MaxR=1.1R | Dur=6d
+    10: 2023-04-19 -> 2023-04-20 | early_exit      | PnL=-0.47% | R=-0.1R | MaxR=0.0R | Dur=1d
+    11: 2023-04-21 -> 2023-04-24 | early_exit      | PnL=-0.70% | R=-0.1R | MaxR=0.0R | Dur=3d
+    12: 2023-04-26 -> 2023-05-01 | early_exit      | PnL=-2.79% | R=-0.6R | MaxR=0.9R | Dur=5d
+    13: 2023-05-05 -> 2023-05-30 | target          | PnL=+15.15% | R=+3.0R | MaxR=3.0R | Dur=25d
+    14: 2024-02-02 -> 2024-02-05 | early_exit      | PnL=-0.87% | R=-0.2R | MaxR=0.0R | Dur=3d
+    15: 2024-02-06 -> 2024-02-13 | early_exit      | PnL=-0.30% | R=-0.1R | MaxR=0.6R | Dur=7d
+    16: 2024-02-14 -> 2024-02-15 | early_exit      | PnL=-0.69% | R=-0.1R | MaxR=0.0R | Dur=1d
+    17: 2024-02-16 -> 2024-02-20 | early_exit      | PnL=-1.43% | R=-0.3R | MaxR=0.0R | Dur=4d
+    18: 2024-02-21 -> 2024-03-14 | time_exit       | PnL=+6.03% | R=+1.2R | MaxR=1.2R | Dur=22d
+    19: 2024-03-15 -> 2024-04-17 | trailing_stop   | PnL=+3.93% | R=+0.8R | MaxR=1.7R | Dur=33d
+    20: 2024-04-18 -> 2024-04-19 | early_exit      | PnL=-2.56% | R=-0.5R | MaxR=0.0R | Dur=1d
+    21: 2024-04-22 -> 2024-04-24 | early_exit      | PnL=-0.36% | R=-0.1R | MaxR=0.3R | Dur=2d
+    22: 2024-04-25 -> 2024-05-23 | trailing_stop   | PnL=+4.25% | R=+0.8R | MaxR=1.8R | Dur=28d
+    23: 2025-06-27 -> 2025-06-30 | early_exit      | PnL=-1.75% | R=-0.4R | MaxR=0.0R | Dur=3d
+    24: 2025-07-01 -> 2025-07-02 | early_exit      | PnL=-0.24% | R=-0.0R | MaxR=0.0R | Dur=1d
+    25: 2025-07-03 -> 2025-07-08 | early_exit      | PnL=-1.81% | R=-0.4R | MaxR=0.0R | Dur=5d
+    26: 2025-07-09 -> 2025-07-10 | early_exit      | PnL=-0.13% | R=-0.0R | MaxR=0.0R | Dur=1d
+    27: 2025-07-11 -> 2025-07-16 | early_exit      | PnL=-0.81% | R=-0.2R | MaxR=0.1R | Dur=5d
+    28: 2025-07-17 -> 2025-08-01 | trailing_stop   | PnL=-4.08% | R=-0.8R | MaxR=0.9R | Dur=15d
+    29: 2026-01-06 -> 2026-01-14 | stop_loss       | PnL=-1.78% | R=-0.4R | MaxR=0.5R | Dur=8d
+    30: 2026-01-16 -> 2026-01-20 | early_exit      | PnL=-3.40% | R=-0.7R | MaxR=0.0R | Dur=4d
+    31: 2026-01-23 -> 2026-01-26 | early_exit      | PnL=-0.31% | R=-0.1R | MaxR=0.0R | Dur=3d
+
+──────────────────────────────────────────────────────────────────────
+  ALT#1 (no_filter, atr=3.0, HL, VC=N, trail=2.0 tg=5R)
+──────────────────────────────────────────────────────────────────────
+
+  TRAIN: 27T, 11W, 16L, WR=41%, CR=+95.77%, CAGR=14.40%, MaxDD=-2.88%, avgR=+0.54, PF=7.9, Exp=38% (0.1s)
+    Salidas: early_exit=13, open=1, target=1, time_exit=4, trailing_stop=8
+     1: 2016-04-29 -> 2016-05-05 | early_exit      | PnL=-0.08% | R=-0.0R | MaxR=0.7R | Dur=6d
+     2: 2016-05-06 -> 2016-06-21 | time_exit       | PnL=+6.21% | R=+1.2R | MaxR=1.6R | Dur=46d
+     3: 2016-06-22 -> 2016-06-24 | early_exit      | PnL=-1.64% | R=-0.3R | MaxR=0.3R | Dur=2d
+     4: 2016-06-27 -> 2016-07-27 | time_exit       | PnL=+6.55% | R=+1.3R | MaxR=1.8R | Dur=30d
+     5: 2016-07-28 -> 2016-09-02 | time_exit       | PnL=+2.63% | R=+0.5R | MaxR=0.5R | Dur=36d
+     6: 2016-09-22 -> 2016-09-26 | early_exit      | PnL=-0.69% | R=-0.1R | MaxR=0.0R | Dur=4d
+     7: 2016-09-27 -> 2016-10-14 | trailing_stop   | PnL=+0.84% | R=+0.2R | MaxR=0.7R | Dur=17d
+     8: 2016-10-17 -> 2016-10-20 | early_exit      | PnL=-0.32% | R=-0.1R | MaxR=0.1R | Dur=3d
+     9: 2016-10-21 -> 2016-10-27 | early_exit      | PnL=-0.08% | R=-0.0R | MaxR=0.5R | Dur=6d
+    10: 2017-03-29 -> 2017-04-13 | trailing_stop   | PnL=+1.18% | R=+0.3R | MaxR=0.9R | Dur=15d
+    11: 2017-04-17 -> 2017-04-19 | early_exit      | PnL=-0.31% | R=-0.1R | MaxR=0.0R | Dur=2d
+    12: 2017-04-20 -> 2017-04-21 | early_exit      | PnL=-0.39% | R=-0.1R | MaxR=0.0R | Dur=1d
+    13: 2017-04-24 -> 2017-05-22 | time_exit       | PnL=+6.97% | R=+1.4R | MaxR=1.4R | Dur=28d
+    14: 2017-10-12 -> 2017-10-18 | early_exit      | PnL=-0.39% | R=-0.1R | MaxR=0.2R | Dur=6d
+    15: 2017-10-27 -> 2017-11-02 | early_exit      | PnL=-0.61% | R=-0.1R | MaxR=0.2R | Dur=6d
+    16: 2017-11-03 -> 2017-12-04 | trailing_stop   | PnL=+2.01% | R=+0.4R | MaxR=1.5R | Dur=31d
+    17: 2017-12-05 -> 2018-01-30 | target          | PnL=+25.95% | R=+5.2R | MaxR=5.2R | Dur=56d
+    18: 2018-07-12 -> 2018-07-30 | trailing_stop   | PnL=-0.97% | R=-0.2R | MaxR=0.7R | Dur=18d
+    19: 2018-07-31 -> 2018-09-06 | trailing_stop   | PnL=+10.18% | R=+2.0R | MaxR=2.9R | Dur=37d
+    20: 2019-03-18 -> 2019-05-10 | trailing_stop   | PnL=+8.49% | R=+1.7R | MaxR=2.5R | Dur=53d
+    21: 2019-05-13 -> 2019-05-23 | trailing_stop   | PnL=-0.40% | R=-0.1R | MaxR=0.9R | Dur=10d
+    22: 2019-05-24 -> 2019-05-29 | early_exit      | PnL=-0.22% | R=-0.0R | MaxR=0.1R | Dur=5d
+    23: 2019-05-30 -> 2019-05-31 | early_exit      | PnL=-2.27% | R=-0.5R | MaxR=0.0R | Dur=1d
+    24: 2019-06-05 -> 2019-07-26 | trailing_stop   | PnL=+11.77% | R=+2.4R | MaxR=3.2R | Dur=51d
+    25: 2019-11-27 -> 2019-11-29 | early_exit      | PnL=-0.97% | R=-0.2R | MaxR=0.0R | Dur=2d
+    26: 2019-12-26 -> 2019-12-30 | early_exit      | PnL=-1.17% | R=-0.2R | MaxR=0.0R | Dur=4d
+    27: 2019-12-31 -> 2019-12-31 | open            | PnL=+0.00% | R=+0.0R | MaxR=0.0R | Dur=0d
+
+  TEST: 4T, 0W, 4L, WR=0%, CR=-3.89%, CAGR=-0.63%, MaxDD=-3.89%, avgR=-0.20, PF=0.0, Exp=1% (0.1s)
+    Salidas: early_exit=4
+     1: 2023-08-04 -> 2023-08-09 | early_exit      | PnL=-1.23% | R=-0.2R | MaxR=0.4R | Dur=5d
+     2: 2023-08-10 -> 2023-08-11 | early_exit      | PnL=-0.11% | R=-0.0R | MaxR=0.0R | Dur=1d
+     3: 2023-08-14 -> 2023-08-15 | early_exit      | PnL=-2.06% | R=-0.4R | MaxR=0.0R | Dur=1d
+     4: 2023-08-31 -> 2023-09-05 | early_exit      | PnL=-0.54% | R=-0.1R | MaxR=0.0R | Dur=5d
+
+──────────────────────────────────────────────────────────────────────
+  ALT#2 (no_filter, atr=3.0, HL, VC=Y, trail=2.0 tg=None)
+──────────────────────────────────────────────────────────────────────
+
+  TRAIN: 16T, 10W, 6L, WR=62%, CR=+88.70%, CAGR=13.56%, MaxDD=-7.53%, avgR=+1.43, PF=4.8, Exp=41% (0.2s)
+    Salidas: stop_loss=3, time_exit=2, trailing_stop=11
+     1: 2016-04-29 -> 2016-06-23 | time_exit       | PnL=+9.47% | R=+3.2R | MaxR=3.5R | Dur=55d
+     2: 2016-06-24 -> 2016-09-01 | time_exit       | PnL=+10.25% | R=+3.4R | MaxR=3.5R | Dur=69d
+     3: 2016-09-22 -> 2016-10-14 | trailing_stop   | PnL=+2.27% | R=+0.8R | MaxR=1.6R | Dur=22d
+     4: 2016-10-17 -> 2016-10-28 | trailing_stop   | PnL=-4.51% | R=-1.5R | MaxR=1.0R | Dur=11d
+     5: 2017-03-29 -> 2017-04-13 | trailing_stop   | PnL=+1.18% | R=+0.4R | MaxR=1.3R | Dur=15d
+     6: 2017-04-17 -> 2017-06-09 | trailing_stop   | PnL=+8.46% | R=+2.8R | MaxR=4.0R | Dur=53d
+     7: 2017-10-12 -> 2017-10-20 | stop_loss       | PnL=-1.80% | R=-0.6R | MaxR=0.3R | Dur=8d
+     8: 2017-10-27 -> 2017-12-04 | trailing_stop   | PnL=+3.00% | R=+1.0R | MaxR=2.9R | Dur=38d
+     9: 2017-12-05 -> 2018-02-01 | trailing_stop   | PnL=+21.76% | R=+7.3R | MaxR=9.0R | Dur=58d
+    10: 2018-07-12 -> 2018-07-30 | trailing_stop   | PnL=-0.97% | R=-0.3R | MaxR=1.2R | Dur=18d
+    11: 2018-07-31 -> 2018-09-06 | trailing_stop   | PnL=+10.18% | R=+3.4R | MaxR=4.9R | Dur=37d
+    12: 2019-03-18 -> 2019-05-10 | trailing_stop   | PnL=+8.49% | R=+2.8R | MaxR=4.2R | Dur=53d
+    13: 2019-05-13 -> 2019-05-23 | trailing_stop   | PnL=-0.40% | R=-0.1R | MaxR=1.6R | Dur=10d
+    14: 2019-05-24 -> 2019-06-03 | stop_loss       | PnL=-7.16% | R=-2.4R | MaxR=0.2R | Dur=10d
+    15: 2019-06-05 -> 2019-07-26 | trailing_stop   | PnL=+11.77% | R=+3.9R | MaxR=5.4R | Dur=51d
+    16: 2019-11-27 -> 2019-12-04 | stop_loss       | PnL=-3.18% | R=-1.1R | MaxR=0.0R | Dur=7d
+
+  TEST: 0T, 0W, 0L, WR=0%, CR=+0.00%, CAGR=0.00%, MaxDD=0.00%, avgR=+0.00, PF=inf, Exp=0% (0.1s)
+    Salidas: 
+
+──────────────────────────────────────────────────────────────────────
+  ALT#3 (no_filter, atr=3.0, HL, VC=N, trail=2.0 tg=None)
+──────────────────────────────────────────────────────────────────────
+
+  TRAIN: 17T, 10W, 7L, WR=59%, CR=+86.59%, CAGR=13.31%, MaxDD=-7.53%, avgR=+1.33, PF=4.5, Exp=41% (0.1s)
+    Salidas: open=1, stop_loss=3, time_exit=2, trailing_stop=11
+     1: 2016-04-29 -> 2016-06-23 | time_exit       | PnL=+9.47% | R=+3.2R | MaxR=3.5R | Dur=55d
+     2: 2016-06-24 -> 2016-09-01 | time_exit       | PnL=+10.25% | R=+3.4R | MaxR=3.5R | Dur=69d
+     3: 2016-09-22 -> 2016-10-14 | trailing_stop   | PnL=+2.27% | R=+0.8R | MaxR=1.6R | Dur=22d
+     4: 2016-10-17 -> 2016-10-28 | trailing_stop   | PnL=-4.51% | R=-1.5R | MaxR=1.0R | Dur=11d
+     5: 2017-03-29 -> 2017-04-13 | trailing_stop   | PnL=+1.18% | R=+0.4R | MaxR=1.3R | Dur=15d
+     6: 2017-04-17 -> 2017-06-09 | trailing_stop   | PnL=+8.46% | R=+2.8R | MaxR=4.0R | Dur=53d
+     7: 2017-10-12 -> 2017-10-20 | stop_loss       | PnL=-1.80% | R=-0.6R | MaxR=0.3R | Dur=8d
+     8: 2017-10-27 -> 2017-12-04 | trailing_stop   | PnL=+3.00% | R=+1.0R | MaxR=2.9R | Dur=38d
+     9: 2017-12-05 -> 2018-02-01 | trailing_stop   | PnL=+21.76% | R=+7.3R | MaxR=9.0R | Dur=58d
+    10: 2018-07-12 -> 2018-07-30 | trailing_stop   | PnL=-0.97% | R=-0.3R | MaxR=1.2R | Dur=18d
+    11: 2018-07-31 -> 2018-09-06 | trailing_stop   | PnL=+10.18% | R=+3.4R | MaxR=4.9R | Dur=37d
+    12: 2019-03-18 -> 2019-05-10 | trailing_stop   | PnL=+8.49% | R=+2.8R | MaxR=4.2R | Dur=53d
+    13: 2019-05-13 -> 2019-05-23 | trailing_stop   | PnL=-0.40% | R=-0.1R | MaxR=1.6R | Dur=10d
+    14: 2019-05-24 -> 2019-06-03 | stop_loss       | PnL=-7.16% | R=-2.4R | MaxR=0.2R | Dur=10d
+    15: 2019-06-05 -> 2019-07-26 | trailing_stop   | PnL=+11.77% | R=+3.9R | MaxR=5.4R | Dur=51d
+    16: 2019-11-27 -> 2019-12-04 | stop_loss       | PnL=-3.18% | R=-1.1R | MaxR=0.0R | Dur=7d
+    17: 2019-12-26 -> 2019-12-31 | open            | PnL=-1.12% | R=-0.4R | MaxR=0.0R | Dur=5d
+
+  TEST: 2T, 0W, 2L, WR=0%, CR=-3.49%, CAGR=-0.57%, MaxDD=-3.49%, avgR=-0.58, PF=0.0, Exp=2% (0.1s)
+    Salidas: stop_loss=1, trailing_stop=1
+     1: 2023-08-04 -> 2023-08-16 | stop_loss       | PnL=-3.22% | R=-1.1R | MaxR=0.6R | Dur=12d
+     2: 2023-08-31 -> 2023-09-19 | trailing_stop   | PnL=-0.28% | R=-0.1R | MaxR=1.7R | Dur=19d
+
+──────────────────────────────────────────────────────────────────────
+  ALT#4 (no_filter, atr=2.0, Close, VC=N, trail=2.0 tg=None)
+──────────────────────────────────────────────────────────────────────
+
+  TRAIN: 19T, 12W, 7L, WR=63%, CR=+113.58%, CAGR=16.42%, MaxDD=-6.29%, avgR=+1.44, PF=4.8, Exp=45% (0.1s)
+    Salidas: open=1, stop_loss=3, time_exit=4, trailing_stop=11
+     1: 2015-07-13 -> 2015-08-20 | time_exit       | PnL=+13.22% | R=+4.4R | MaxR=6.0R | Dur=38d
+     2: 2015-08-21 -> 2015-08-24 | stop_loss       | PnL=-6.29% | R=-2.1R | MaxR=0.0R | Dur=3d
+     3: 2015-08-25 -> 2015-09-28 | trailing_stop   | PnL=+8.08% | R=+2.7R | MaxR=5.9R | Dur=34d
+     4: 2016-04-29 -> 2016-06-23 | time_exit       | PnL=+9.47% | R=+3.2R | MaxR=3.5R | Dur=55d
+     5: 2016-06-24 -> 2016-09-01 | time_exit       | PnL=+10.25% | R=+3.4R | MaxR=3.5R | Dur=69d
+     6: 2016-09-21 -> 2016-10-14 | trailing_stop   | PnL=+4.21% | R=+1.4R | MaxR=2.3R | Dur=23d
+     7: 2016-10-17 -> 2016-10-28 | trailing_stop   | PnL=-4.51% | R=-1.5R | MaxR=1.0R | Dur=11d
+     8: 2017-02-15 -> 2017-03-14 | time_exit       | PnL=+1.17% | R=+0.4R | MaxR=0.5R | Dur=27d
+     9: 2017-03-15 -> 2017-04-13 | trailing_stop   | PnL=+3.72% | R=+1.2R | MaxR=2.2R | Dur=29d
+    10: 2017-04-17 -> 2017-06-09 | trailing_stop   | PnL=+8.46% | R=+2.8R | MaxR=4.0R | Dur=53d
+    11: 2017-10-27 -> 2017-12-04 | trailing_stop   | PnL=+3.00% | R=+1.0R | MaxR=2.9R | Dur=38d
+    12: 2017-12-05 -> 2018-02-01 | trailing_stop   | PnL=+21.76% | R=+7.3R | MaxR=9.0R | Dur=58d
+    13: 2018-07-12 -> 2018-07-30 | trailing_stop   | PnL=-0.97% | R=-0.3R | MaxR=1.2R | Dur=18d
+    14: 2018-07-31 -> 2018-09-06 | trailing_stop   | PnL=+10.18% | R=+3.4R | MaxR=4.9R | Dur=37d
+    15: 2019-01-31 -> 2019-02-01 | stop_loss       | PnL=-5.38% | R=-1.8R | MaxR=0.0R | Dur=1d
+    16: 2019-03-15 -> 2019-05-10 | trailing_stop   | PnL=+10.37% | R=+3.5R | MaxR=4.9R | Dur=56d
+    17: 2019-05-13 -> 2019-05-23 | trailing_stop   | PnL=-0.40% | R=-0.1R | MaxR=1.6R | Dur=10d
+    18: 2019-11-27 -> 2019-12-04 | stop_loss       | PnL=-3.18% | R=-1.1R | MaxR=0.0R | Dur=7d
+    19: 2019-12-26 -> 2019-12-31 | open            | PnL=-1.12% | R=-0.4R | MaxR=0.0R | Dur=5d
+
+  TEST: 14T, 5W, 9L, WR=36%, CR=-0.12%, CAGR=-0.02%, MaxDD=-13.17%, avgR=+0.06, PF=1.1, Exp=20% (0.1s)
+    Salidas: stop_loss=6, time_exit=1, trailing_stop=7
+     1: 2021-02-02 -> 2021-02-11 | stop_loss       | PnL=-3.49% | R=-1.2R | MaxR=0.0R | Dur=9d
+     2: 2022-07-29 -> 2022-08-22 | trailing_stop   | PnL=-1.28% | R=-0.4R | MaxR=2.4R | Dur=24d
+     3: 2022-08-23 -> 2022-08-30 | stop_loss       | PnL=-3.66% | R=-1.2R | MaxR=0.9R | Dur=7d
+     4: 2022-08-31 -> 2022-09-13 | trailing_stop   | PnL=+0.04% | R=+0.0R | MaxR=2.5R | Dur=13d
+     5: 2023-04-19 -> 2023-05-01 | trailing_stop   | PnL=-2.16% | R=-0.7R | MaxR=1.8R | Dur=12d
+     6: 2023-05-05 -> 2023-07-24 | trailing_stop   | PnL=+21.91% | R=+7.3R | MaxR=9.4R | Dur=80d
+     7: 2024-02-02 -> 2024-03-22 | time_exit       | PnL=+4.11% | R=+1.4R | MaxR=1.4R | Dur=49d
+     8: 2024-03-25 -> 2024-04-17 | trailing_stop   | PnL=+0.87% | R=+0.3R | MaxR=1.7R | Dur=23d
+     9: 2024-04-18 -> 2024-04-25 | stop_loss       | PnL=-3.10% | R=-1.0R | MaxR=0.1R | Dur=7d
+    10: 2024-04-26 -> 2024-05-23 | trailing_stop   | PnL=+0.80% | R=+0.3R | MaxR=1.8R | Dur=27d
+    11: 2025-06-27 -> 2025-08-01 | trailing_stop   | PnL=-3.83% | R=-1.3R | MaxR=1.6R | Dur=35d
+    12: 2026-01-06 -> 2026-01-14 | stop_loss       | PnL=-1.78% | R=-0.6R | MaxR=0.9R | Dur=8d
+    13: 2026-01-16 -> 2026-01-20 | stop_loss       | PnL=-3.40% | R=-1.1R | MaxR=0.0R | Dur=4d
+    14: 2026-01-23 -> 2026-02-04 | stop_loss       | PnL=-2.58% | R=-0.9R | MaxR=0.8R | Dur=12d
+
+======================================================================
+  COMPLETO
+======================================================================

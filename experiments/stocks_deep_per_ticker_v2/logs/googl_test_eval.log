@@ -1,0 +1,91 @@
+TRAIN: 1258 barras, TEST: 1574 barras
+Buy & Hold TEST: CR=+363.69%, MaxDD=-44.32%
+
+COMP#1 w3_t1.2 tr=2.5 tg=None sl=7% — TRAIN: 12T, 9W, WR=75%, CR=+77.52%, MaxDD=-2.55%, avgR=+0.96
+   1: 2015-07-13 -> 2015-07-24 | trailing_stop   | PnL=+14.52% | R=+2.6R | MaxR=4.0R | Dur=11d
+   2: 2015-07-27 -> 2015-08-21 | stop_loss       | PnL=-2.16% | R=-0.3R | MaxR=0.8R | Dur=25d
+   3: 2015-08-24 -> 2015-09-17 | time_exit       | PnL=+8.67% | R=+1.2R | MaxR=1.2R | Dur=24d
+   4: 2016-07-28 -> 2016-08-22 | time_exit       | PnL=+4.06% | R=+0.6R | MaxR=0.8R | Dur=25d
+   5: 2017-03-17 -> 2017-03-21 | stop_loss       | PnL=-2.55% | R=-0.4R | MaxR=0.0R | Dur=4d
+   6: 2017-04-24 -> 2017-06-09 | trailing_stop   | PnL=+10.38% | R=+1.8R | MaxR=2.5R | Dur=46d
+   7: 2017-09-27 -> 2017-11-30 | trailing_stop   | PnL=+7.95% | R=+2.2R | MaxR=3.2R | Dur=64d
+   8: 2017-12-01 -> 2018-02-02 | trailing_stop   | PnL=+9.18% | R=+2.2R | MaxR=3.9R | Dur=63d
+   9: 2018-07-13 -> 2018-08-14 | time_exit       | PnL=+4.46% | R=+0.6R | MaxR=1.0R | Dur=32d
+  10: 2019-03-12 -> 2019-03-27 | stop_loss       | PnL=-1.61% | R=-0.2R | MaxR=0.5R | Dur=15d
+  11: 2019-10-17 -> 2019-11-29 | time_exit       | PnL=+4.09% | R=+0.6R | MaxR=1.0R | Dur=43d
+  12: 2019-12-04 -> 2019-12-26 | time_exit       | PnL=+3.30% | R=+0.5R | MaxR=0.5R | Dur=22d
+
+COMP#1 w3_t1.2 tr=2.5 tg=None sl=7% — TEST: 4T, 2W, WR=50%, CR=+3.55%, MaxDD=-7.77%, avgR=+0.16
+   1: 2021-07-23 -> 2021-09-20 | trailing_stop   | PnL=+4.29% | R=+0.6R | MaxR=1.3R | Dur=59d
+   2: 2021-09-21 -> 2021-09-28 | stop_loss       | PnL=-2.30% | R=-0.3R | MaxR=0.3R | Dur=7d
+   3: 2021-09-29 -> 2021-11-17 | time_exit       | PnL=+10.19% | R=+1.5R | MaxR=1.6R | Dur=49d
+   4: 2023-02-02 -> 2023-02-08 | stop_loss       | PnL=-7.77% | R=-1.1R | MaxR=0.0R | Dur=6d
+
+COMP#2 w1_t1.2 tr=2.5 tg=None sl=7% — TRAIN: 12T, 9W, WR=75%, CR=+73.67%, MaxDD=-2.55%, avgR=+0.93
+   1: 2015-07-13 -> 2015-07-24 | trailing_stop   | PnL=+14.52% | R=+2.6R | MaxR=4.0R | Dur=11d
+   2: 2015-07-27 -> 2015-08-21 | stop_loss       | PnL=-2.16% | R=-0.3R | MaxR=0.8R | Dur=25d
+   3: 2015-08-24 -> 2015-09-17 | time_exit       | PnL=+8.67% | R=+1.2R | MaxR=1.2R | Dur=24d
+   4: 2016-07-28 -> 2016-08-22 | time_exit       | PnL=+4.06% | R=+0.6R | MaxR=0.8R | Dur=25d
+   5: 2017-03-17 -> 2017-03-21 | stop_loss       | PnL=-2.55% | R=-0.4R | MaxR=0.0R | Dur=4d
+   6: 2017-04-24 -> 2017-06-09 | trailing_stop   | PnL=+10.38% | R=+1.8R | MaxR=2.5R | Dur=46d
+   7: 2017-09-27 -> 2017-11-30 | trailing_stop   | PnL=+7.95% | R=+2.2R | MaxR=3.2R | Dur=64d
+   8: 2017-12-01 -> 2018-02-02 | trailing_stop   | PnL=+9.18% | R=+2.2R | MaxR=3.9R | Dur=63d
+   9: 2018-07-23 -> 2018-08-14 | time_exit       | PnL=+3.89% | R=+0.6R | MaxR=0.9R | Dur=22d
+  10: 2019-03-12 -> 2019-03-27 | stop_loss       | PnL=-1.61% | R=-0.2R | MaxR=0.5R | Dur=15d
+  11: 2019-10-28 -> 2019-11-18 | time_exit       | PnL=+2.39% | R=+0.3R | MaxR=0.5R | Dur=21d
+  12: 2019-12-04 -> 2019-12-26 | time_exit       | PnL=+3.30% | R=+0.5R | MaxR=0.5R | Dur=22d
+
+COMP#2 w1_t1.2 tr=2.5 tg=None sl=7% — TEST: 3T, 2W, WR=67%, CR=+4.84%, MaxDD=-7.77%, avgR=+0.26
+   1: 2021-07-23 -> 2021-09-20 | trailing_stop   | PnL=+4.29% | R=+0.6R | MaxR=1.3R | Dur=59d
+   2: 2021-09-28 -> 2021-11-17 | time_exit       | PnL=+8.99% | R=+1.3R | MaxR=1.4R | Dur=50d
+   3: 2023-02-02 -> 2023-02-08 | stop_loss       | PnL=-7.77% | R=-1.1R | MaxR=0.0R | Dur=6d
+
+CR#1 no_filter tr=2.5 tg=2R early=3 sl=3% — TRAIN: 32T, 13W, WR=41%, CR=+103.84%, MaxDD=-5.31%, avgR=+0.79
+   1: 2015-07-13 -> 2015-07-17 | target          | PnL=+22.37% | R=+7.5R | MaxR=7.5R | Dur=4d
+   2: 2015-07-20 -> 2015-07-23 | early_exit      | PnL=-2.61% | R=-0.9R | MaxR=0.1R | Dur=3d
+   3: 2015-07-24 -> 2015-08-17 | target          | PnL=+6.01% | R=+2.0R | MaxR=2.0R | Dur=24d
+   4: 2015-08-18 -> 2015-08-20 | early_exit      | PnL=-1.34% | R=-0.4R | MaxR=0.3R | Dur=2d
+   5: 2015-08-21 -> 2015-08-24 | early_exit      | PnL=-4.02% | R=-1.3R | MaxR=0.0R | Dur=3d
+   6: 2015-08-25 -> 2015-08-26 | target          | PnL=+7.72% | R=+2.6R | MaxR=2.6R | Dur=1d
+   7: 2015-12-29 -> 2015-12-30 | early_exit      | PnL=-0.46% | R=-0.2R | MaxR=0.0R | Dur=1d
+   8: 2016-07-20 -> 2016-07-21 | early_exit      | PnL=-0.35% | R=-0.1R | MaxR=0.0R | Dur=1d
+   9: 2016-07-22 -> 2016-07-25 | early_exit      | PnL=-0.23% | R=-0.1R | MaxR=0.0R | Dur=3d
+  10: 2016-07-26 -> 2016-08-05 | target          | PnL=+6.50% | R=+2.2R | MaxR=2.2R | Dur=10d
+  11: 2016-08-08 -> 2016-08-29 | time_exit       | PnL=-1.17% | R=-0.4R | MaxR=0.1R | Dur=21d
+  12: 2017-03-10 -> 2017-03-21 | stop_loss       | PnL=-1.31% | R=-0.4R | MaxR=0.4R | Dur=11d
+  13: 2017-04-24 -> 2017-05-01 | target          | PnL=+6.13% | R=+2.0R | MaxR=2.0R | Dur=7d
+  14: 2017-05-02 -> 2017-05-30 | target          | PnL=+6.30% | R=+2.1R | MaxR=2.1R | Dur=28d
+  15: 2017-09-27 -> 2017-10-27 | target          | PnL=+7.69% | R=+2.6R | MaxR=2.6R | Dur=30d
+  16: 2017-10-30 -> 2017-10-31 | early_exit      | PnL=-0.01% | R=-0.0R | MaxR=0.0R | Dur=1d
+  17: 2017-11-01 -> 2017-11-30 | stop_loss       | PnL=-0.62% | R=-0.2R | MaxR=0.9R | Dur=29d
+  18: 2017-12-01 -> 2017-12-04 | early_exit      | PnL=-1.29% | R=-0.4R | MaxR=0.0R | Dur=3d
+  19: 2017-12-05 -> 2017-12-18 | target          | PnL=+6.42% | R=+2.1R | MaxR=2.1R | Dur=13d
+  20: 2018-07-13 -> 2018-07-16 | early_exit      | PnL=-0.66% | R=-0.2R | MaxR=0.0R | Dur=3d
+  21: 2018-07-17 -> 2018-07-18 | early_exit      | PnL=-0.01% | R=-0.0R | MaxR=0.0R | Dur=1d
+  22: 2018-07-23 -> 2018-07-26 | target          | PnL=+6.15% | R=+2.1R | MaxR=2.1R | Dur=3d
+  23: 2018-07-27 -> 2018-07-30 | early_exit      | PnL=-1.82% | R=-0.6R | MaxR=0.0R | Dur=3d
+  24: 2018-07-31 -> 2018-08-28 | time_exit       | PnL=+1.52% | R=+0.5R | MaxR=1.0R | Dur=28d
+  25: 2019-03-04 -> 2019-03-07 | early_exit      | PnL=-0.22% | R=-0.1R | MaxR=0.5R | Dur=3d
+  26: 2019-03-11 -> 2019-03-27 | trailing_stop   | PnL=-0.11% | R=-0.0R | MaxR=1.6R | Dur=16d
+  27: 2019-03-28 -> 2019-04-22 | target          | PnL=+6.95% | R=+2.3R | MaxR=2.3R | Dur=25d
+  28: 2019-10-17 -> 2019-10-18 | early_exit      | PnL=-0.67% | R=-0.2R | MaxR=0.0R | Dur=1d
+  29: 2019-10-23 -> 2019-11-15 | target          | PnL=+6.04% | R=+2.0R | MaxR=2.0R | Dur=23d
+  30: 2019-11-18 -> 2019-11-19 | early_exit      | PnL=-0.55% | R=-0.2R | MaxR=0.0R | Dur=1d
+  31: 2019-11-20 -> 2019-11-21 | early_exit      | PnL=-0.13% | R=-0.0R | MaxR=0.0R | Dur=1d
+  32: 2019-11-22 -> 2019-12-31 | open            | PnL=+3.53% | R=+1.2R | MaxR=1.8R | Dur=39d
+
+CR#1 no_filter tr=2.5 tg=2R early=3 sl=3% — TEST: 14T, 2W, WR=14%, CR=-4.86%, MaxDD=-10.03%, avgR=-0.10
+   1: 2021-07-23 -> 2021-07-27 | early_exit      | PnL=-0.84% | R=-0.3R | MaxR=0.3R | Dur=4d
+   2: 2021-07-28 -> 2021-07-29 | early_exit      | PnL=-0.23% | R=-0.1R | MaxR=0.0R | Dur=1d
+   3: 2021-07-30 -> 2021-08-27 | target          | PnL=+6.89% | R=+2.3R | MaxR=2.3R | Dur=28d
+   4: 2021-08-30 -> 2021-09-02 | early_exit      | PnL=-0.90% | R=-0.3R | MaxR=0.1R | Dur=3d
+   5: 2021-09-03 -> 2021-09-08 | early_exit      | PnL=-0.03% | R=-0.0R | MaxR=0.1R | Dur=5d
+   6: 2021-09-09 -> 2021-09-10 | early_exit      | PnL=-1.86% | R=-0.6R | MaxR=0.0R | Dur=1d
+   7: 2021-09-13 -> 2021-09-20 | stop_loss       | PnL=-2.54% | R=-0.8R | MaxR=0.5R | Dur=7d
+   8: 2021-09-21 -> 2021-09-28 | stop_loss       | PnL=-2.30% | R=-0.8R | MaxR=0.8R | Dur=7d
+   9: 2021-09-29 -> 2021-09-30 | early_exit      | PnL=-0.50% | R=-0.2R | MaxR=0.0R | Dur=1d
+  10: 2021-10-01 -> 2021-10-04 | early_exit      | PnL=-2.11% | R=-0.7R | MaxR=0.0R | Dur=3d
+  11: 2021-10-05 -> 2021-10-27 | target          | PnL=+7.49% | R=+2.5R | MaxR=2.5R | Dur=22d
+  12: 2023-02-02 -> 2023-02-03 | early_exit      | PnL=-2.75% | R=-0.9R | MaxR=0.0R | Dur=1d
+  13: 2023-02-06 -> 2023-02-08 | early_exit      | PnL=-3.43% | R=-1.1R | MaxR=1.5R | Dur=2d
+  14: 2026-02-02 -> 2026-02-03 | early_exit      | PnL=-1.16% | R=-0.4R | MaxR=0.0R | Dur=1d
