@@ -182,6 +182,7 @@ def detect_breakout_signal(
     volume_contraction_result: VolumeContractionResult | None = None,
     volume_confirmation_window: int = 1,
     volume_lookback_from_pattern: bool = False,
+    volume_confirmation_forward: int = 0,
 ) -> VCPSignal | None:
     """Detecta si hay senal de compra VCP en evaluation_date.
 
@@ -206,6 +207,14 @@ def detect_breakout_signal(
             VCP (primer high a ultimo low) como periodo de lookback para
             calcular el volumen promedio de referencia, en vez del fijo
             volume_lookback_days.
+        volume_confirmation_forward: Dias hacia adelante (despues del
+            breakout de precio) donde buscar confirmacion de volumen.
+            Con 0 (default) solo busca hacia atras (comportamiento original).
+            Con N > 0, si el volumen no se confirma en la ventana backward,
+            busca en los N dias siguientes verificando que el precio siga
+            por encima del pivot. Si en algun dia forward el close cae
+            <= pivot, se cancela la busqueda. La senal se emite en el dia
+            donde se confirma el volumen (no en el dia del breakout de precio).
 
     Returns:
         VCPSignal si el trigger de precio (y opcionalmente de volumen) se cumple,
@@ -262,7 +271,41 @@ def detect_breakout_signal(
         volume_confirmation_window=volume_confirmation_window,
     )
 
-    if volume_confirmation["applied"] and not volume_confirmation["passed"]:
+    backward_passed = not volume_confirmation["applied"] or volume_confirmation["passed"]
+
+    if not backward_passed and volume_confirmation_forward > 0:
+        eval_loc = ohlc.index.get_loc(evaluation_date)
+        max_forward_loc = min(eval_loc + volume_confirmation_forward, len(ohlc) - 1)
+
+        for fwd_loc in range(eval_loc + 1, max_forward_loc + 1):
+            fwd_date = ohlc.index[fwd_loc]
+            fwd_close = float(ohlc.iloc[fwd_loc]["close"])
+
+            if fwd_close <= pivot_info.price:
+                break
+
+            fwd_vol_confirmation = _evaluate_volume(
+                ohlc=ohlc,
+                evaluation_date=fwd_date,
+                volume_method=volume_method,
+                volume_ratio_threshold=volume_ratio_threshold,
+                volume_percentile=volume_percentile,
+                volume_lookback_days=effective_lookback,
+                require_volume_confirmation=require_volume_confirmation,
+                volume_confirmation_window=1,
+            )
+
+            if fwd_vol_confirmation.get("passed", False):
+                fwd_vol_confirmation["forward_confirmed"] = True
+                fwd_vol_confirmation["breakout_date"] = evaluation_date
+                fwd_vol_confirmation["confirmation_delay_days"] = fwd_loc - eval_loc
+                volume_confirmation = fwd_vol_confirmation
+                evaluation_date = fwd_date
+                close_today = fwd_close
+                backward_passed = True
+                break
+
+    if not backward_passed:
         return None
 
     suggested_stop = pivot_info.last_low_price

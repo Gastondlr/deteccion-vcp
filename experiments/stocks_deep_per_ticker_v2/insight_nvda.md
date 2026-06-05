@@ -288,18 +288,82 @@ COMP#2/3 evitan el trade #4 perdedor (-7.62%) de COMP#1 porque w3/w1_t1.2 no con
 
 ---
 
+## Analisis del target: 5R vs None
+
+El target=5R fue la config ganadora en el ranking automatico, pero un analisis
+posterior revelo un comportamiento diferente entre train y test.
+
+### Train: target=5R es mejor
+
+| Metrica | target=5R | target=None |
+|---|---|---|
+| Trades | 6 | 6 |
+| WR | 67% | 67% |
+| CR | **+96.87%** | +68.99% |
+| avg_R | **+2.63** | +2.01 |
+
+Los mismos 6 trades, pero sin target los ganadores rinden menos. El trailing de
+2.5×ATR da demasiado espacio: el precio retrocede antes de que el trailing se active
+y devuelve una porcion significativa de la ganancia. Ejemplos:
+- Trade #2: con target sale a +6.4R. Sin target el trailing lo saca a +4.2R (max fue 6.4R, devolvio 2.2R).
+- Trade #4: con target +5.1R. Sin target sale a +2.8R (max fue 5.2R, devolvio 2.4R).
+
+### Test: target=None es mejor
+
+| Metrica | target=5R | target=None |
+|---|---|---|
+| Trades | 4 | 3 |
+| WR | 75% | **100%** |
+| CR | +89.00% | **+95.43%** |
+| avg_R | +3.60 | **+5.03** |
+
+Sin target, el trade #2 (entry 2024-01-08) se mantiene abierto mas tiempo y absorbe
+el periodo donde con target=5R se abria el trade #3 perdedor (-2.68%). Resultado:
+3 trades ganadores, 100% WR, +95.43% CR.
+
+| # | Entry | Exit | Salida | PnL | R | MaxR | Dur |
+|---|---|---|---|---|---|---|---|
+| 1 | 2023-05-01 | 2023-06-07 | trailing_stop | +29.63% | +5.9R | 7.7R | 37d |
+| 2 | 2024-01-08 | 2024-02-21 | trailing_stop | +29.13% | +5.8R | 8.3R | 44d |
+| 3 | 2025-06-25 | 2025-08-28 | time_exit | +16.76% | +3.4R | 3.7R | 64d |
+
+### Interpretacion
+
+El trade-off es clasico: el target protege ganancias en movimientos que revierten
+(train), pero bloquea el upside y libera capital para trades potencialmente
+perdedores (test).
+
+En un contexto operativo real, el detector VCP aporta su mayor valor en la
+identificacion del patron y la senal de entrada — determinar cuando un activo tiene
+las condiciones para un movimiento direccional. Una vez dentro del trade, la decision
+de cuando salir puede gestionarse dia a dia observando el comportamiento del precio
+y el volumen, en vez de delegar la salida a un target fijo automatico.
+
+Con target=None, la salida queda determinada por:
+- Stop loss si el patron falla (-5%)
+- Trailing stop si el precio avanza y luego retrocede significativamente (2.5×ATR)
+- Time exit si el precio se lateraliza sin progreso (15 barras sin +0.5R)
+
+Esto permite al operador monitorear la posicion activa y tomar decisiones informadas
+sobre el contexto del mercado, en vez de cerrar automaticamente en un nivel
+predeterminado que no considera las condiciones del momento.
+
+---
+
 ## Conclusion
 
-**NVDA es el segundo mejor ticker para la estrategia VCP**, con excelente generalizacion train->test.
+**NVDA es el segundo mejor ticker para la estrategia VCP**, con excelente
+generalizacion train->test.
 
-**COMP#2 (w3_t1.2, tr=2.5, tg=5R, sl=5%)** es la variante recomendada:
-- Generaliza excelente: CR +96.87% train -> +89.00% test
-- 75% WR en test con avg_R de +3.60
-- MaxDD controlado: -2.68% en test
-- Sharpe 1.10 en test (mejor que train)
+**COMP#2 (w3_t1.2, tr=2.5, sl=5%)** es la variante de deteccion recomendada:
+- Generaliza excelente: CR +96.87% train → +89.00% test (con tg=5R)
+- Con target=None en test: 3T, 100% WR, +95.43% CR, avg_R +5.03
+- MaxDD controlado: -2.68% (tg=5R) / -0% (tg=None, 100% WR)
 - Los pocos VCPs que NVDA forma son de alta calidad y producen movimientos explosivos
 
-El parametro clave es **target=5R**: permite capturar los movimientos de +25-31% que caracterizan a NVDA. Ningun otro ticker tiene un target optimo tan alto.
+El valor principal del detector es la identificacion de patrones VCP de alta
+calidad. La gestion de salida (target vs trailing) es secundaria y puede
+adaptarse al contexto operativo.
 
 ---
 
@@ -307,3 +371,4 @@ El parametro clave es **target=5R**: permite capturar los movimientos de +25-31%
 
 - NVDA y AAPL son los mejores candidatos para un portfolio VCP multi-ticker
 - Evaluar si combinar NVDA+AAPL produce mejores metricas de portfolio (diversificacion temporal de trades)
+- Explorar target=None como default operativo, delegando la salida al monitoreo dia a dia

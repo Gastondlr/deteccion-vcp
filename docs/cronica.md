@@ -935,7 +935,8 @@ Drawdown controlado (-10% vs -33% B&H). Capital libre 84% del tiempo.
 - Medium: trail=2.5
 - Loose: trail=3.5
 
-**Escala:** 17,496 pipeline runs → 734,832 evaluaciones en Fase 1.
+**Escala:** 17,496 pipeline runs × 2 TT × 7 vol_filter × 3 exit = 734,832 evaluaciones totales.
+De esas, 244,944 son configs de deteccion unicas (promediando las 3 salidas fijas).
 Fase 2: 720 configs × ~18 candidatos = 12,960 evaluaciones.
 
 **Resultados AAPL v2 (top 3 composite, TRAIN → TEST):**
@@ -1017,9 +1018,10 @@ usando la misma metodologia aplicada a AAPL el 29 de mayo.
 
 Optimizacion en dos fases con seleccion multi-criterio:
 
-**Fase 1 — Deteccion:** Se evaluan 17,496 pipeline runs × 14 variantes de vol_filter/exit = 244,944
-configuraciones. Cada config se evalua con 3 perfiles de salida fijos (tight/medium/loose trailing) y
-se rankea por el promedio. Se seleccionan ~20 candidatos: top 10 por CR + top 10 por WR (sin duplicados).
+**Fase 1 — Deteccion:** 17,496 pipeline runs × 2 TT × 7 vol_filter × 3 exit = 734,832 evaluaciones
+totales. De esas, 244,944 son configs de deteccion unicas (promediando las 3 salidas fijas
+tight/medium/loose). Se rankea por el promedio y se seleccionan ~20 candidatos: top 10 por CR +
+top 10 por WR (sin duplicados).
 
 **Fase 2 — Salida:** Se evaluan 720 configuraciones de salida sobre los ~20 candidatos seleccionados
 (~14,400 evaluaciones). Se aplica ranking compuesto: 50% CR + 30% WR + 20% avg_R.
@@ -1159,3 +1161,136 @@ de regimen de volatilidad post-2020.
 Los parametros optimos no son transferibles entre tickers: use_close_only, lookback_bars,
 target_r_multiple y trailing_atr_multiplier varian significativamente. Esto implica que una
 estrategia VCP productiva requiere optimizacion per-ticker.
+
+---
+
+## 5 de junio de 2026
+
+### Nuevo parametro: volume_confirmation_forward
+
+Se implemento `volume_confirmation_forward` en `detect_breakout_signal()`. Este
+parametro complementa la ventana backward existente (`volume_confirmation_window`)
+permitiendo buscar confirmacion de volumen en los dias posteriores al breakout
+de precio.
+
+**Logica:** Cuando el precio supera el pivot pero el volumen no confirma en la
+ventana backward, se busca en los N dias siguientes verificando que:
+1. El precio (close) siga por encima del pivot
+2. Aparezca un dia con volumen alto
+
+Si el close cae <= pivot en algun dia forward, se cancela la busqueda. La senal
+se emite en el dia donde se confirma el volumen (no en el dia del breakout de
+precio), evitando look-ahead bias.
+
+**Default:** 0 (solo busca hacia atras, comportamiento original).
+
+### Test: forward volume sobre configs COMP#1 v2
+
+**Script:** `experiments/test_forward_volume.py`
+
+Se testearon las configuraciones ganadoras (COMP#1) de cada ticker del
+experimento deep per-ticker v2, variando solo `volume_confirmation_forward`
+con valores [0, 1, 2, 3, 5]. Se evaluo en train (2015-2019) y test (2020-2026).
+
+**Resultados TRAIN (2015-2019):**
+
+| Ticker | Config vol | fwd=0 (baseline) | fwd=3 | fwd=5 |
+|---|---|---|---|---|
+| AAPL | vol=off | 8T 88% +54.28% | sin cambio | sin cambio |
+| AMZN | w3_t1.2 | 12T 75% +111.12% | sin cambio | sin cambio |
+| GOOGL | w3_t1.2 | 12T 75% +77.52% | 14T 64% +72.40% | 14T 64% +72.40% |
+| MSFT | vol=off | 9T 67% +48.17% | sin cambio | sin cambio |
+| NVDA | w3_t1.2 | 6T 67% +96.87% | sin cambio | sin cambio |
+
+**Resultados TEST (2020-2026):**
+
+| Ticker | Config vol | fwd=0 (baseline) | fwd=3 | fwd=5 |
+|---|---|---|---|---|
+| AAPL | vol=off | 7T 71% +33.04% | sin cambio | sin cambio |
+| AMZN | w3_t1.2 | 0T (fallo estructural) | sin cambio | sin cambio |
+| GOOGL | w3_t1.2 | 4T 50% +3.55% | sin cambio | sin cambio |
+| MSFT | vol=off | 9T 44% +1.04% | sin cambio | sin cambio |
+| NVDA | w3_t1.2 | 4T 75% +89.00% | 5T 60% +76.58% | 6T 50% +66.48% |
+
+**Observaciones:**
+
+1. **AAPL y MSFT:** Sin efecto. Sus configs COMP#1 usan `require_volume_confirmation=False`,
+   por lo que el forward no aplica.
+
+2. **AMZN:** 0 senales en test independientemente del forward. El problema es
+   estructural (ATR no se contrae post-2020), no de volumen.
+
+3. **GOOGL train:** El forward agrega 2 trades que pierden (WR baja de 75% a 64%,
+   CR de +77.52% a +72.40%). En test, las senales extra caen cuando ya hay trade
+   activo (sequential las ignora) y no cambian metricas.
+
+4. **NVDA test:** El caso mas revelador. Con fwd=3 se agrega 1 trade perdedor
+   (CR baja de +89% a +76.58%). Con fwd=5, 2 trades perdedores (CR baja a +66.48%,
+   WR de 75% a 50%).
+
+**Conclusion:** El `volume_confirmation_forward` no mejora ninguna config ganadora.
+En los casos donde agrega trades (GOOGL train, NVDA test), esos trades son de peor
+calidad. Las senales donde el volumen confirma el mismo dia o antes del breakout
+son las mas confiables — las que necesitan confirmacion tardia son breakouts debiles.
+
+El parametro queda implementado y disponible (default=0), pero la evidencia
+indica que no debe activarse con las configs actuales.
+
+### Analisis del target en NVDA: 5R vs None
+
+A partir de los graficos de trades generados para las configs ganadoras, se
+observo que el target=5R tiene un efecto diferente en train vs test para NVDA.
+
+**NVDA TRAIN — target=5R gana:**
+
+| Metrica | target=5R | target=None |
+|---|---|---|
+| Trades | 6 | 6 |
+| WR | 67% | 67% |
+| CR | +96.87% | +68.99% |
+| avg_R | +2.63 | +2.01 |
+
+Mismos trades, pero sin target los ganadores devuelven ganancia antes de que el
+trailing (2.5×ATR) se active. Ejemplo: trade #2 con target sale a +6.4R en 29d;
+sin target el trailing lo saca a +4.2R despues de que el precio revertio desde
+el maximo de 6.4R.
+
+**NVDA TEST — target=None gana:**
+
+| Metrica | target=5R | target=None |
+|---|---|---|
+| Trades | 4 | 3 |
+| WR | 75% | 100% |
+| CR | +89.00% | +95.43% |
+| avg_R | +3.60 | +5.03 |
+
+Detalle de trades con target=5R:
+
+| # | Entry | Exit | Salida | PnL | R | MaxR | Dur |
+|---|---|---|---|---|---|---|---|
+| 1 | 2023-05-01 | 2023-05-25 | target | +31.37% | +6.3R | 6.3R | 24d |
+| 2 | 2024-01-08 | 2024-02-02 | target | +26.61% | +5.3R | 5.3R | 25d |
+| 3 | 2024-02-05 | 2024-02-21 | stop_loss | -2.68% | -0.5R | 1.3R | 16d |
+| 4 | 2025-06-25 | 2025-08-28 | time_exit | +16.76% | +3.4R | 3.7R | 64d |
+
+Detalle de trades con target=None:
+
+| # | Entry | Exit | Salida | PnL | R | MaxR | Dur |
+|---|---|---|---|---|---|---|---|
+| 1 | 2023-05-01 | 2023-06-07 | trailing_stop | +29.63% | +5.9R | 7.7R | 37d |
+| 2 | 2024-01-08 | 2024-02-21 | trailing_stop | +29.13% | +5.8R | 8.3R | 44d |
+| 3 | 2025-06-25 | 2025-08-28 | time_exit | +16.76% | +3.4R | 3.7R | 64d |
+
+El cambio clave es el trade #2: con target=5R sale el 2024-02-02, y al dia
+siguiente entra el trade #3 que pierde -2.68%. Sin target, el trade #2 sigue
+abierto hasta 2024-02-21 (trailing_stop a +5.8R, max +8.3R) y absorbe ese
+periodo, evitando el trade perdedor.
+
+**Conclusion:** El valor principal del detector VCP es la identificacion de
+patrones de alta calidad y la senal de entrada. Una vez dentro del trade, la
+gestion de salida puede hacerse dia a dia observando el comportamiento del
+precio y volumen, en vez de delegar a un target fijo automatico. Con target=None
+la salida queda determinada por stop loss (si el patron falla), trailing stop
+(si el precio avanza y retrocede), o time exit (si se lateraliza). Esto permite
+al operador monitorear la posicion activa y tomar decisiones sobre el contexto
+del momento.

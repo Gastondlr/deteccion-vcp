@@ -638,3 +638,175 @@ def plot_trade_simulation(
     else:
         plt.show()
     return fig
+
+
+def plot_vcp_trade_combined(
+    ohlc: pd.DataFrame,
+    pattern: dict,
+    trade_result: dict,
+    pattern_number: int,
+    risk_params: dict,
+    ticker: str = "",
+    margin_bars_before: int = 40,
+    margin_bars_after: int = 10,
+    save_path: str | Path | None = None,
+) -> plt.Figure:
+    """Grafico combinado: patron VCP + simulacion de trade + volumen."""
+    sig = pattern["signal_obj"]
+    seq = sig.pivot_info.sequence
+    contractions = seq.contractions
+
+    pattern_start = contractions[0].high_swing.date
+    entry_date = pattern["first_signal_date"]
+    exit_date = trade_result["exit_date"]
+    entry_price = pattern["entry_price"]
+    initial_risk = pattern["initial_risk"]
+
+    pattern_start_loc = ohlc.index.get_loc(pattern_start)
+    exit_loc = ohlc.index.get_loc(exit_date)
+    start_loc = max(0, pattern_start_loc - margin_bars_before)
+    end_loc = min(len(ohlc) - 1, exit_loc + margin_bars_after)
+    window = ohlc.iloc[start_loc : end_loc + 1]
+
+    vol_ma50 = ohlc["volume"].rolling(50, min_periods=1).mean()
+    stop_dates, stop_prices = zip(*trade_result["stop_history"])
+
+    fig, (ax_price, ax_vol) = plt.subplots(
+        2, 1, figsize=(16, 9), height_ratios=[3, 1], sharex=True,
+        gridspec_kw={"hspace": 0.08},
+    )
+
+    ax_price.plot(
+        window.index, window["close"], color="#2c3e50", linewidth=1.2,
+        label="Close", zorder=2,
+    )
+
+    colors_contraction = plt.cm.Blues(np.linspace(0.25, 0.55, len(contractions)))
+    for i, c in enumerate(contractions):
+        ax_price.axvspan(
+            c.high_swing.date, c.low_swing.date,
+            alpha=0.10, color=colors_contraction[i], zorder=0,
+        )
+        mid_date = c.high_swing.date + (c.low_swing.date - c.high_swing.date) / 2
+        ax_price.annotate(
+            f"C{i+1}\n{c.depth_pct:.1%}",
+            xy=(mid_date, (c.high_swing.price + c.low_swing.price) / 2),
+            fontsize=8, ha="center", va="center", color="#2c3e50", fontweight="bold",
+        )
+
+    swing_highs_dates = [c.high_swing.date for c in contractions]
+    swing_highs_prices = [c.high_swing.price for c in contractions]
+    swing_lows_dates = [c.low_swing.date for c in contractions]
+    swing_lows_prices = [c.low_swing.price for c in contractions]
+
+    ax_price.scatter(
+        swing_highs_dates, swing_highs_prices, marker="v", s=70,
+        color="#e74c3c", zorder=4, label="Swing High",
+    )
+    ax_price.scatter(
+        swing_lows_dates, swing_lows_prices, marker="^", s=70,
+        color="#27ae60", zorder=4, label="Swing Low",
+    )
+
+    pivot_price = pattern["pivot_price"]
+    ax_price.axhline(
+        pivot_price, color="#e67e22", linestyle="--", linewidth=1.2, alpha=0.7,
+        label=f"Pivot ${pivot_price:.2f}",
+    )
+
+    ax_price.step(
+        stop_dates, stop_prices, where="post", color="#e74c3c",
+        linewidth=1.8, alpha=0.7, label="Stop", zorder=3,
+    )
+
+    ax_price.scatter(
+        [entry_date], [entry_price], marker="*", s=300, color="#f39c12",
+        edgecolors="#e67e22", linewidth=1.5, zorder=5,
+        label=f"BUY ${entry_price:.2f}",
+    )
+
+    exit_colors = {
+        "stop_loss": "#e74c3c", "trailing_stop": "#e67e22",
+        "distribution": "#9b59b6", "time_exit": "#95a5a6",
+        "early_exit": "#e74c3c", "target": "#27ae60", "open": "#3498db",
+    }
+    exit_markers = {
+        "stop_loss": "X", "trailing_stop": "X", "distribution": "D",
+        "time_exit": "s", "early_exit": "X", "target": "*", "open": "o",
+    }
+    reason = trade_result["exit_reason"]
+    ax_price.scatter(
+        [exit_date], [trade_result["exit_price"]],
+        marker=exit_markers.get(reason, "o"), s=200,
+        color=exit_colors.get(reason, "#7f8c8d"),
+        edgecolors="black", linewidth=1, zorder=5,
+        label=f"EXIT: {reason} ${trade_result['exit_price']:.2f}",
+    )
+
+    step = risk_params["breakeven_r_multiple"]
+    for r_level in range(1, 8):
+        r_price = entry_price + r_level * step * initial_risk
+        if r_price < window["close"].max() * 1.1:
+            ax_price.axhline(
+                r_price, color="#27ae60", linestyle=":", linewidth=0.5, alpha=0.25,
+            )
+            ax_price.text(
+                window.index[-1], r_price, f" {r_level * step:.0f}R",
+                fontsize=7, color="#27ae60", va="center",
+            )
+
+    pnl_str = f"{trade_result['pnl_pct']:+.1%}"
+    r_str = f"{trade_result['r_multiple']:+.1f}R"
+    depths_str = " → ".join(f"{d:.1%}" for d in pattern["depths_pct"])
+    ax_price.set_title(
+        f"#{pattern_number} {ticker}  |  "
+        f"{entry_date.strftime('%Y-%m-%d')} → {exit_date.strftime('%Y-%m-%d')} "
+        f"({trade_result['duration_days']}d)  |  "
+        f"{reason.upper()} {pnl_str} ({r_str})  |  "
+        f"Contracciones: [{depths_str}]",
+        fontsize=11, fontweight="bold", pad=10,
+    )
+    ax_price.set_ylabel("Precio (USD)", fontsize=10)
+    ax_price.legend(loc="upper left", fontsize=7.5, framealpha=0.9, ncol=2)
+
+    vol_window = window["volume"]
+    vol_ma_window = vol_ma50.loc[window.index]
+    vol_colors = [
+        "#27ae60" if window["close"].iloc[i] >= window["open"].iloc[i] else "#e74c3c"
+        for i in range(len(window))
+    ]
+    ax_vol.bar(
+        window.index, vol_window, width=0.8, color=vol_colors, alpha=0.5, zorder=2,
+    )
+    ax_vol.plot(
+        window.index, vol_ma_window, color="#3498db", linewidth=1.2,
+        label="Vol MA(50)", zorder=3,
+    )
+
+    if entry_date in window.index:
+        entry_vol = ohlc.loc[entry_date, "volume"]
+        entry_ma = vol_ma50.loc[entry_date]
+        vol_ratio = entry_vol / entry_ma if entry_ma > 0 else 0
+        ax_vol.bar(
+            [entry_date], [entry_vol], width=0.8, color="#f39c12", alpha=0.9,
+            zorder=4, label=f"Breakout vol ({vol_ratio:.1f}x avg)",
+        )
+
+    ax_vol.set_ylabel("Volumen", fontsize=10)
+    ax_vol.legend(loc="upper left", fontsize=7.5, framealpha=0.9)
+    ax_vol.yaxis.set_major_formatter(
+        mticker.FuncFormatter(
+            lambda x, _: f"{x/1e6:.0f}M" if x >= 1e6 else f"{x/1e3:.0f}K"
+        )
+    )
+    ax_vol.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
+    ax_vol.xaxis.set_major_locator(mdates.MonthLocator(interval=1))
+    fig.autofmt_xdate(rotation=30)
+
+    plt.tight_layout()
+    if save_path is not None:
+        fig.savefig(save_path, dpi=150, bbox_inches="tight")
+        plt.close(fig)
+    else:
+        plt.show()
+    return fig
