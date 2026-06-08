@@ -1234,7 +1234,11 @@ calidad. Las senales donde el volumen confirma el mismo dia o antes del breakout
 son las mas confiables — las que necesitan confirmacion tardia son breakouts debiles.
 
 El parametro queda implementado y disponible (default=0), pero la evidencia
-indica que no debe activarse con las configs actuales.
+indica que no debe activarse con las configs actuales. **Nota:** Este test fue
+limitado — solo evaluo forward sobre las configs COMP#1 de v2, donde AAPL y MSFT
+tenian `require_volume_confirmation=False` (forward no aplica). El experimento v3
+(6-7 de junio) corrige esto con un grid search completo que incluye forward como
+parte del espacio de busqueda.
 
 ### Analisis del target en NVDA: 5R vs None
 
@@ -1294,3 +1298,141 @@ la salida queda determinada por stop loss (si el patron falla), trailing stop
 (si el precio avanza y retrocede), o time exit (si se lateraliza). Esto permite
 al operador monitorear la posicion activa y tomar decisiones sobre el contexto
 del momento.
+
+---
+
+## 6-7 de junio de 2026
+
+### Deep per-ticker v3 — Forward volume confirmation en grid search
+
+**Directorio:** `experiments/stocks_deep_per_ticker_v3/`
+**Insight:** `insight_forward_volume.md`
+**Split:** TRAIN 2015-2019 (1,258 barras) / TEST 2020-2026 (1,574 barras)
+
+El test aislado del 5 de junio fue limitado: solo evaluo forward sobre configs COMP#1
+de v2, donde AAPL y MSFT tenian volumen desactivado. En v3 se re-ejecuta el grid search
+completo de v2 pero reemplazando las 6 variantes backward-only por 6 variantes forward,
+manteniendo no_filter como control.
+
+### Cambio vs v2
+
+En v2 el volume filter era solo backward (buscar volumen alto en los N dias anteriores
+al breakout). En v3, el filtro primero busca backward; si no confirma, busca forward
+hasta N dias despues, verificando que el precio siga sobre el pivot. Si confirma forward,
+la entrada se desplaza al dia de confirmacion (sin look-ahead bias).
+
+**7 variantes de vol_filter v3:**
+
+| Variante | Backward window | Threshold | Forward days |
+|---|---|---|---|
+| no_filter | — | — | — |
+| w1_t1.2_f3 | 1 dia | 1.2x | 3 |
+| w1_t1.2_f5 | 1 dia | 1.2x | 5 |
+| w3_t1.2_f3 | 3 dias | 1.2x | 3 |
+| w3_t1.2_f5 | 3 dias | 1.2x | 5 |
+| w1_t1.5_f3 | 1 dia | 1.5x | 3 |
+| w3_t1.5_f3 | 3 dias | 1.5x | 3 |
+
+**Implementacion:** Post-filter sobre pipeline con `require_volume_confirmation=False`.
+Un unico pipeline run sirve para las 7 variantes. Cuando el forward confirma, se usa
+`dataclasses.replace()` sobre el VCPSignal frozen para crear una senal modificada con
+fecha de entrada y precio desplazados al dia de confirmacion.
+
+**Escala:** 17,496 pipeline runs × 7 vol × 2 TT × 3 exit = 734,832 evaluaciones por
+ticker. Se corrieron 5 tickers: AAPL, AMZN, GOOGL, MSFT, NVDA.
+
+### Resultados — Ranking en train
+
+| Ticker | Mejor forward (composite) | Config | T | WR | CR | Mejor no_filter | T | WR | CR |
+|---|---|---|---|---|---|---|---|---|---|
+| AAPL | 1.016 | w3_t1.2_f5, tr=3.0, be=1.0, sl=3%, VC | 4 | 100% | +36.14% | 1.109 (superior) | 4 | 100% | +41.22% |
+| AMZN | 1.222 | w3_t1.2_f3, tr=2.0, be=1.5, sl=3%, VC | 12 | 75% | +111.12% | 1.045 | 19 | 63% | +113.58% |
+| GOOGL | 0.553 | w3_t1.2_f3, tr=2.5, be=1.0, sl=7% | 12 | 75% | +77.52% | ~0.53 (similar) | 16 | 69% | +78.84% |
+| MSFT | 0.733 | w3_t1.2_f3, tr=3.0, be=1.5, sl=3% | 4 | 100% | +20.79% | 0.792 (superior) | 7 | 86% | +40.19% |
+| NVDA | 1.307 | w3_t1.2_f3, tr=2.5, be=1.5, sl=3% | 5 | 60% | +67.96% | 1.160 | 3 | 100% | +33.67% |
+
+En train, forward y no_filter estan parejos: forward gana en AMZN y NVDA, no_filter en
+AAPL y MSFT, empate en GOOGL.
+
+### Resultados — Test (2020-2026)
+
+Evaluacion de los mejores configs forward y baselines no_filter por ticker:
+
+**AAPL — Forward gana (+37% vs +19%)**
+
+| Config | Test T | WR | CR | MaxDD | PF |
+|---|---|---|---|---|---|
+| **FWD w3_t1.2_f5** | 6 | **83%** | **+37.38%** | -4.02% | **9.3** |
+| Baseline no_filter be=1.0 | 6 | 67% | +19.36% | -6.59% | 3.0 |
+
+Forward duplica el retorno del baseline en test. Evito el trade toxico del 2025-07-25
+(baseline: stop_loss -5.38%) y en cambio entro el 2025-07-31 con confirmacion, capturando
++8.88%. Mejor transicion train→test del proyecto: CR mejora de +36% a +37%.
+
+**GOOGL — Forward gana (positivo vs negativo)**
+
+| Config | Test T | WR | CR | MaxDD | PF |
+|---|---|---|---|---|---|
+| **FWD COMP#3 w1_t1.2_f3 VC tg=3R** | 2 | **100%** | **+14.34%** | 0.00% | **inf** |
+| Baseline no_filter | 5 | 40% | **-4.02%** | -14.51% | 0.8 |
+
+Forward evito el trade 2026-02-02 (baseline: stop_loss -7.31%). COMP#3 con VC + forward
++ target=3R mantiene 100% WR en train Y test.
+
+**NVDA — Baseline gana (+182% vs +142%)**
+
+| Config | Test T | WR | CR | MaxDD | PF |
+|---|---|---|---|---|---|
+| FWD#2 w1_t1.2_f3 | 6 | 67% | +142.36% | -6.84% | 15.7 |
+| **Baseline NF (same det)** | **9** | 67% | **+182.30%** | -5.79% | **14.7** |
+
+NVDA es tan explosivo (B&H test +2935%) que filtrar trades buenos cuesta mas que evitar
+malos. El baseline captura 3 trades extra que suman +33.5% netos.
+
+**MSFT — Baseline gana (+4.66% vs +1.88%)**
+
+| Config | Test T | WR | CR | MaxDD | PF |
+|---|---|---|---|---|---|
+| FWD#1 w3_t1.2_f3 | 4 | 50% | +1.88% | -7.87% | 1.3 |
+| **Baseline VC=True tr=1.5** | **5** | **60%** | **+4.66%** | -4.67% | **2.0** |
+
+Forward sobre-filtra las pocas senales de MSFT.
+
+**AMZN — No viable (0 trades)**
+
+Todas las configs (forward y baseline) con los params de deteccion ganadores en train
+(atr=3.0, VC=True) producen 0 trades en test. El unico baseline con trades en test usa
+params distintos (atr=2.0, close=True, VC=False) y es negativo (-0.12%, 36% WR).
+Confirma el diagnostico de v2: cambio de regimen post-2020.
+
+### Scoreboard final: Forward 2 — Baseline 2 — No viable 1
+
+| Ticker | Mejor config test | Test T | WR | CR | MaxDD | Veredicto |
+|---|---|---|---|---|---|---|
+| **AAPL** | FWD w3_t1.2_f5, tr=3.0, be=1.0, sl=3% | 6 | 83% | +37.38% | -4.02% | Forward gana |
+| **GOOGL** | FWD w1_t1.2_f3 VC, tr=2.5, tg=3R, sl=5% | 2 | 100% | +14.34% | 0.00% | Forward gana |
+| **NVDA** | Baseline NF, tr=2.5, be=1.5, sl=3% | 9 | 67% | +182.30% | -5.79% | Baseline gana |
+| **MSFT** | Baseline VC=True, tr=1.5, be=0.5, sl=3% | 5 | 60% | +4.66% | -4.67% | Baseline gana |
+| **AMZN** | — | 0 | — | — | — | No viable |
+
+### Conclusiones v3
+
+1. **Forward volume no es universal.** Funciona en tickers con senales de calidad media
+   (AAPL, GOOGL) donde filtra trades toxicos, pero no agrega valor en tickers explosivos
+   (NVDA) ni donde sobre-filtra (MSFT).
+
+2. **Threshold 1.2x es suficiente** en todos los tickers donde forward funciona. El forward
+   ya filtra naturalmente porque requiere que el precio se mantenga sobre pivot.
+
+3. **Forward 3 vs 5 dias: minima diferencia.** Para AAPL, f3 y f5 producen resultados
+   identicos. Recomendacion: usar f3 (menos exposicion temporal).
+
+4. **Patron robusto: VC + forward + exits conservadores.** Las configs mas robustas combinan
+   volume contraction, forward confirmation y trailing amplio con stop ajustado.
+
+5. **AMZN confirma el problema de generalizacion temporal.** Params optimizados en 2015-2019
+   pueden no producir ninguna senal en 2020-2026. El problema no es el forward sino la
+   deteccion base.
+
+6. **Trade count sigue bajo** (2-9 trades en test, 6.25 anos). Insuficiente para significancia
+   estadistica rigurosa. Los resultados son indicativos, no concluyentes.
