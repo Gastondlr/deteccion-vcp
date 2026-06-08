@@ -310,12 +310,12 @@ Stage 2 en test: dato no disponible en log (estimado ~25% basado en el regimen d
 
 ### Tabla de resultados — Test
 
-| Variante | T | W | L | WR | CR | MaxDD | avgR | PF | Exp |
-|---|---|---|---|---|---|---|---|---|---|
-| **Buy & Hold GOOGL** | — | — | — | — | +363.69% | -44.32% | — | — | 100% |
-| **COMP#1** w3_t1.2, tr=2.5 tg=None sl=7% | 4 | 2 | 2 | 50% | +3.55% | -7.77% | +0.16 | — | — |
-| **COMP#2** w1_t1.2, tr=2.5 tg=None sl=7% | 3 | 2 | 1 | 67% | +4.84% | -7.77% | +0.26 | — | — |
-| **CR#1** no_filter, tr=2.5 tg=2R early=3 sl=3% | 14 | 2 | 12 | 14% | -4.86% | -10.03% | -0.10 | — | — |
+| Variante | T | W | L | WR | CR | MaxDD | Sharpe | avgR | PF | Exp |
+|---|---|---|---|---|---|---|---|---|---|---|
+| **Buy & Hold GOOGL** | — | — | — | — | +363.69% | -44.32% | — | — | — | 100% |
+| **COMP#1** w3_t1.2, tr=2.5 tg=None sl=7% | 4 | 2 | 2 | 50% | +3.55% | -7.77% | 0.13 | +0.16 | — | — |
+| **COMP#2** w1_t1.2, tr=2.5 tg=None sl=7% | 3 | 2 | 1 | 67% | +4.84% | -7.77% | 0.18 | +0.26 | — | — |
+| **CR#1** no_filter, tr=2.5 tg=2R early=3 sl=3% | 14 | 2 | 12 | 14% | -4.86% | -10.03% | -0.14 | -0.10 | — | — |
 
 ### Detalle de trades — COMP#1 (w3_t1.2) — 4T, 50% WR, +3.55%
 
@@ -365,6 +365,7 @@ COMP#2 (w1_t1.2) evita el trade #2 perdedor de COMP#1 porque el filtro de 1 dia 
 | WR | 75% | 50% | 75% | 67% | 41% | 14% |
 | CR | +77.52% | +3.55% | +73.67% | +4.84% | +103.84% | -4.86% |
 | MaxDD | -2.55% | -7.77% | -2.55% | -7.77% | -5.31% | -10.03% |
+| Sharpe | 1.52 | 0.13 | 1.45 | 0.18 | — | -0.14 |
 | avg_R | +0.96 | +0.16 | +0.93 | +0.26 | +0.79 | -0.10 |
 
 ---
