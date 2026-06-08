@@ -195,7 +195,7 @@ evita liberar capital para un trade perdedor. Se reportan ambos.
 | WR | 67% | 100% | — |
 | CR | +96.87% | +95.43% | +2935.78% |
 | MaxDD | -10.36% | 0.00% | -66.36% |
-| Sharpe | 0.89 | 2.93 | — |
+| Sharpe | 0.89 | 2.93 | 1.30 |
 | avg_R | +2.63 | +5.03 | — |
 
 **Trades en TEST (target=None):**
@@ -249,7 +249,7 @@ Graficos de los trades en TEST: `plots/nvda/test/`
 | WR | 67% | 50% | — |
 | CR | +48.17% | +8.41% | +133.05% |
 | MaxDD | -0.89% | -9.39% | -37.56% |
-| Sharpe | 1.31 | 0.29 | — |
+| Sharpe | 1.31 | 0.29 | 0.61 |
 | avg_R | +1.02 | +0.37 | — |
 
 **Observaciones MSFT:**
@@ -288,7 +288,7 @@ Graficos de los trades en TEST: `plots/nvda/test/`
 | WR | 75% | 50% | — |
 | CR | +77.52% | +3.55% | +363.69% |
 | MaxDD | -2.55% | -7.77% | -44.32% |
-| Sharpe | 1.52 | 0.13 | — |
+| Sharpe | 1.52 | 0.13 | 0.92 |
 | avg_R | +0.96 | +0.16 | — |
 
 **Observaciones GOOGL:**
@@ -329,6 +329,7 @@ Graficos de los trades en TEST: `plots/nvda/test/`
 | WR | 75% | — | — |
 | CR | +111.12% | 0.00% | +133.14% |
 | MaxDD | -1.80% | — | -56.15% |
+| Sharpe | — | — | 0.56 |
 | avg_R | +2.21 | — | — |
 
 **0 trades en TEST.** La causa no es un problema de parametros sino un cambio de
