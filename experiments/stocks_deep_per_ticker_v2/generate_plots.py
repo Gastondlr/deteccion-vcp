@@ -33,6 +33,21 @@ DATA_DIR = project_root / "data" / "csv"
 OUTPUT_DIR = Path(__file__).resolve().parent / "plots"
 TRAIN_CUTOFF = pd.Timestamp("2020-01-01")
 
+
+def apply_volume_post_filter(signals, ohlc, window, threshold, lookback_days=50):
+    filtered = {}
+    for dt, sig in signals.items():
+        eval_loc = ohlc.index.get_loc(dt)
+        ls = max(0, eval_loc - lookback_days)
+        va = float(ohlc["volume"].iloc[ls:eval_loc].mean()) if eval_loc > ls else 0.0
+        if va <= 0:
+            continue
+        ws = max(0, eval_loc - window + 1)
+        if any(float(v) >= threshold * va for v in ohlc["volume"].iloc[ws:eval_loc + 1]):
+            filtered[dt] = sig
+    return filtered
+
+
 CONFIGS = {
     "AAPL": {
         "swing": ATRZigZagConfig(atr_mult=2.0, use_close_only=False),
@@ -155,6 +170,30 @@ CONFIGS = {
             "target_r_multiple": None,
         },
     },
+    "TSLA": {
+        "swing": ATRZigZagConfig(atr_mult=2.0, use_close_only=True),
+        "sequence": {
+            "method": "tolerance", "min_contractions": 2, "max_contractions": 6,
+            "lookback_bars": 126, "tolerance": 0.10, "max_depth_pct": 0.35,
+            "max_depth_atr": None, "min_total_reduction": 0.80,
+            "require_ascending_lows": True, "ascending_lows_tolerance": 0.08,
+        },
+        "compression": {"method": "ratio", "atr_period": 14, "ratio_threshold": 0.95},
+        "volume_contraction": None,
+        "breakout": {
+            "volume_method": "ratio", "volume_ratio_threshold": 1.5,
+            "volume_lookback_days": 50, "require_volume_confirmation": False,
+        },
+        "vol_filter": {"window": 3, "threshold": 1.5},
+        "risk": {
+            "trailing_stop_method": "atr", "trailing_atr_multiplier": 1.5,
+            "trailing_atr_period": 14, "target_r_multiple": 5.0,
+            "early_exit_days": None, "breakeven_r_multiple": 0.5,
+            "max_stop_loss_pct": 0.07, "max_bars_without_progress": 15,
+            "min_progress_r": 0.5,
+            "trailing_sma_period": 20, "trailing_volume_factor": 1.5,
+        },
+    },
 }
 
 
@@ -178,6 +217,11 @@ def generate_plots(ticker: str, split: str):
     )
 
     signals = {dt: sig for dt, sig in results.items() if sig is not None}
+
+    vf = config.get("vol_filter")
+    if vf:
+        signals = apply_volume_post_filter(signals, ohlc, vf["window"], vf["threshold"])
+
     if not signals:
         print(f"  {ticker} {split}: 0 senales, sin graficos")
         return
